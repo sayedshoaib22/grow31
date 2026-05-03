@@ -2294,8 +2294,12 @@ function initReels() {
           // Handle autoplay restrictions
           console.log('Autoplay prevented:', e);
         });
+        // Start progress tracking
+        startProgressTracking(video);
       } else {
         video.pause();
+        // Stop progress tracking
+        stopProgressTracking();
       }
     });
   }, { threshold: 0.8 }); // Need 80% visible to play
@@ -2449,6 +2453,103 @@ function toggleFollow(btn) {
     btn.style.background = 'rgba(255, 20, 147, 0.9)';
     showToast(`❌ Unfollowed ${username}`, 'info');
   }
+}
+
+function togglePlayPause(btn) {
+  const shortItem = btn.closest('.short-item');
+  const video = shortItem.querySelector('.short-video');
+  const playIcon = btn.querySelector('i');
+
+  if (video.paused) {
+    video.play();
+    playIcon.setAttribute('data-lucide', 'pause');
+    showToast('▶️ Playing', 'info');
+  } else {
+    video.pause();
+    playIcon.setAttribute('data-lucide', 'play');
+    showToast('⏸️ Paused', 'info');
+  }
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
+}
+
+function toggleVolume(btn) {
+  const shortItem = btn.closest('.short-item');
+  const video = shortItem.querySelector('.short-video');
+  const volumeIcon = btn.querySelector('i');
+
+  if (video.muted) {
+    video.muted = false;
+    volumeIcon.setAttribute('data-lucide', 'volume-2');
+    showToast('🔊 Unmuted', 'info');
+  } else {
+    video.muted = true;
+    volumeIcon.setAttribute('data-lucide', 'volume-x');
+    showToast('🔇 Muted', 'info');
+  }
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
+}
+
+function showMenu() {
+  showToast('📋 Menu options coming soon!', 'info');
+}
+
+function toggleSubscribe(btn) {
+  const username = btn.closest('.short-user-info').querySelector('.username').textContent;
+
+  if (btn.textContent === 'Subscribe') {
+    btn.textContent = 'Subscribed';
+    btn.style.background = 'rgba(255, 255, 255, 0.2)';
+    showToast(`🔔 Subscribed to ${username}!`, 'success');
+  } else {
+    btn.textContent = 'Subscribe';
+    btn.style.background = 'rgba(255, 20, 147, 0.9)';
+    showToast(`❌ Unsubscribed from ${username}`, 'info');
+  }
+}
+
+function toggleDislike(btn) {
+  const heartIcon = btn.querySelector('i');
+  const countSpan = btn.querySelector('.action-count');
+  let count = parseInt(countSpan.textContent.replace('K', '000'));
+
+  if (heartIcon.style.color === 'rgb(244, 67, 54)') {
+    // Remove dislike
+    heartIcon.style.color = '';
+    count--;
+  } else {
+    // Dislike
+    heartIcon.style.color = '#f44336';
+    count++;
+    showToast('👎 Disliked', 'info');
+  }
+
+  // Format count
+  if (count >= 1000) {
+    countSpan.textContent = (count / 1000).toFixed(1) + 'K';
+  } else {
+    countSpan.textContent = count;
+  }
+}
+
+function startProgressTracking(video) {
+  // Clear any existing interval
+  stopProgressTracking();
+
+  const shortItem = video.closest('.short-item');
+  const progressFill = shortItem.querySelector('.progress-fill');
+
+  if (!progressFill) return;
+
+  progressInterval = setInterval(() => {
+    if (video.duration && !video.paused) {
+      const progress = (video.currentTime / video.duration) * 100;
+      progressFill.style.width = progress + '%';
+    }
+  }, 100); // Update every 100ms
 }
 
 function stopProgressTracking() {

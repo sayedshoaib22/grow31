@@ -1029,14 +1029,36 @@
               </video>
             </div>
             <div class="short-overlay">
-              <!-- Bottom Caption -->
-              <div class="short-caption">
-                <div class="short-text">
-                  Welcome to Grow31! Start your 31-day challenge today! 💪 #Grow31 #Challenge
+              <!-- Top Controls -->
+              <div class="short-top-controls">
+                <button class="control-btn pause-btn" onclick="togglePlayPause(this)">
+                  <i data-lucide="play"></i>
+                </button>
+                <button class="control-btn volume-btn" onclick="toggleVolume(this)">
+                  <i data-lucide="volume-2"></i>
+                </button>
+                <button class="control-btn menu-btn" onclick="showMenu()">
+                  <i data-lucide="more-vertical"></i>
+                </button>
+              </div>
+
+              <!-- Left Side Content -->
+              <div class="short-left-content">
+                <div class="short-user-info">
+                  <div class="user-avatar-large">🎬</div>
+                  <div class="user-details">
+                    <span class="username">@grow31</span>
+                    <button class="subscribe-btn" onclick="toggleSubscribe(this)">Subscribe</button>
+                  </div>
                 </div>
-                <div class="short-music">
-                  <i data-lucide="music"></i>
-                  <span>Original Audio - Grow31</span>
+                <div class="short-caption-left">
+                  <div class="short-text">
+                    Welcome to Grow31! Start your 31-day challenge today! 💪 #Grow31 #Challenge
+                  </div>
+                  <div class="short-music">
+                    <i data-lucide="music"></i>
+                    <span>Original Audio - Grow31</span>
+                  </div>
                 </div>
               </div>
 
@@ -1046,6 +1068,10 @@
                   <i data-lucide="heart"></i>
                   <span class="action-count">1.2K</span>
                 </button>
+                <button class="action-btn dislike-btn" onclick="toggleDislike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">12</span>
+                </button>
                 <button class="action-btn comment-btn" onclick="showComments()">
                   <i data-lucide="message-circle"></i>
                   <span class="action-count">89</span>
@@ -1054,17 +1080,12 @@
                   <i data-lucide="send"></i>
                   <span class="action-count">23</span>
                 </button>
-                <button class="action-btn more-btn" onclick="showMoreOptions()">
-                  <i data-lucide="more-horizontal"></i>
-                </button>
               </div>
 
-              <!-- User Info -->
-              <div class="short-user">
-                <div class="user-avatar">🎬</div>
-                <div class="user-info">
-                  <span class="username">@grow31</span>
-                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+              <!-- Bottom Progress Bar -->
+              <div class="short-progress-container">
+                <div class="short-progress-bar">
+                  <div class="progress-fill"></div>
                 </div>
               </div>
             </div>
@@ -1078,19 +1099,48 @@
               </video>
             </div>
             <div class="short-overlay">
-              <div class="short-caption">
-                <div class="short-text">
-                  Complete daily tasks and earn coins! Spin the wheel for bonus rewards! 🎯 #DailyTasks
+              <!-- Top Controls -->
+              <div class="short-top-controls">
+                <button class="control-btn pause-btn" onclick="togglePlayPause(this)">
+                  <i data-lucide="play"></i>
+                </button>
+                <button class="control-btn volume-btn" onclick="toggleVolume(this)">
+                  <i data-lucide="volume-2"></i>
+                </button>
+                <button class="control-btn menu-btn" onclick="showMenu()">
+                  <i data-lucide="more-vertical"></i>
+                </button>
+              </div>
+
+              <!-- Left Side Content -->
+              <div class="short-left-content">
+                <div class="short-user-info">
+                  <div class="user-avatar-large">🏆</div>
+                  <div class="user-details">
+                    <span class="username">@grow31_official</span>
+                    <button class="subscribe-btn" onclick="toggleSubscribe(this)">Subscribe</button>
+                  </div>
                 </div>
-                <div class="short-music">
-                  <i data-lucide="music"></i>
-                  <span>Epic Motivation - Grow31</span>
+                <div class="short-caption-left">
+                  <div class="short-text">
+                    Complete daily tasks and earn coins! Spin the wheel for bonus rewards! 🎯 #DailyTasks
+                  </div>
+                  <div class="short-music">
+                    <i data-lucide="music"></i>
+                    <span>Epic Motivation - Grow31</span>
+                  </div>
                 </div>
               </div>
+
+              <!-- Right Side Actions -->
               <div class="short-actions">
                 <button class="action-btn like-btn" onclick="toggleLike(this)">
                   <i data-lucide="heart"></i>
                   <span class="action-count">856</span>
+                </button>
+                <button class="action-btn dislike-btn" onclick="toggleDislike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">8</span>
                 </button>
                 <button class="action-btn comment-btn" onclick="showComments()">
                   <i data-lucide="message-circle"></i>
@@ -1100,15 +1150,12 @@
                   <i data-lucide="send"></i>
                   <span class="action-count">15</span>
                 </button>
-                <button class="action-btn more-btn" onclick="showMoreOptions()">
-                  <i data-lucide="more-horizontal"></i>
-                </button>
               </div>
-              <div class="short-user">
-                <div class="user-avatar">🏆</div>
-                <div class="user-info">
-                  <span class="username">@grow31_official</span>
-                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+
+              <!-- Bottom Progress Bar -->
+              <div class="short-progress-container">
+                <div class="short-progress-bar">
+                  <div class="progress-fill"></div>
                 </div>
               </div>
             </div>
@@ -1122,19 +1169,48 @@
               </video>
             </div>
             <div class="short-overlay">
-              <div class="short-caption">
-                <div class="short-text">
-                  Join our community! Invite friends and earn referral bonuses! 🌱 #Community
+              <!-- Top Controls -->
+              <div class="short-top-controls">
+                <button class="control-btn pause-btn" onclick="togglePlayPause(this)">
+                  <i data-lucide="play"></i>
+                </button>
+                <button class="control-btn volume-btn" onclick="toggleVolume(this)">
+                  <i data-lucide="volume-2"></i>
+                </button>
+                <button class="control-btn menu-btn" onclick="showMenu()">
+                  <i data-lucide="more-vertical"></i>
+                </button>
+              </div>
+
+              <!-- Left Side Content -->
+              <div class="short-left-content">
+                <div class="short-user-info">
+                  <div class="user-avatar-large">🚀</div>
+                  <div class="user-details">
+                    <span class="username">@grow31_team</span>
+                    <button class="subscribe-btn" onclick="toggleSubscribe(this)">Subscribe</button>
+                  </div>
                 </div>
-                <div class="short-music">
-                  <i data-lucide="music"></i>
-                  <span>Community Vibes - Grow31</span>
+                <div class="short-caption-left">
+                  <div class="short-text">
+                    Join our community! Invite friends and earn referral bonuses! 🌱 #Community
+                  </div>
+                  <div class="short-music">
+                    <i data-lucide="music"></i>
+                    <span>Community Vibes - Grow31</span>
+                  </div>
                 </div>
               </div>
+
+              <!-- Right Side Actions -->
               <div class="short-actions">
                 <button class="action-btn like-btn" onclick="toggleLike(this)">
                   <i data-lucide="heart"></i>
                   <span class="action-count">2.1K</span>
+                </button>
+                <button class="action-btn dislike-btn" onclick="toggleDislike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">23</span>
                 </button>
                 <button class="action-btn comment-btn" onclick="showComments()">
                   <i data-lucide="message-circle"></i>
@@ -1144,15 +1220,12 @@
                   <i data-lucide="send"></i>
                   <span class="action-count">78</span>
                 </button>
-                <button class="action-btn more-btn" onclick="showMoreOptions()">
-                  <i data-lucide="more-horizontal"></i>
-                </button>
               </div>
-              <div class="short-user">
-                <div class="user-avatar">🚀</div>
-                <div class="user-info">
-                  <span class="username">@grow31_team</span>
-                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+
+              <!-- Bottom Progress Bar -->
+              <div class="short-progress-container">
+                <div class="short-progress-bar">
+                  <div class="progress-fill"></div>
                 </div>
               </div>
             </div>
@@ -1167,19 +1240,44 @@
               </video>
             </div>
             <div class="short-overlay">
-              <div class="short-caption">
-                <div class="short-text">
-                  Success story! 31 days of consistency paid off! 🏆 #SuccessStory
-                </div>
-                <div class="short-music">
-                  <i data-lucide="music"></i>
-                  <span>Victory Song - Grow31</span>
+              <!-- Top Controls -->
+              <div class="short-top-controls">
+                <button class="control-btn pause-btn" onclick="togglePlayPause(this)">
+                  <i data-lucide="pause"></i>
+                </button>
+                <button class="control-btn volume-btn" onclick="toggleVolume(this)">
+                  <i data-lucide="volume-2"></i>
+                </button>
+                <button class="control-btn menu-btn" onclick="showMenu()">
+                  <i data-lucide="more-vertical"></i>
+                </button>
+              </div>
+
+              <!-- Left Content -->
+              <div class="short-left-content">
+                <div class="user-avatar-large">⭐</div>
+                <div class="user-details">
+                  <span class="username-large">@grow31_winner</span>
+                  <div class="caption-large">
+                    Success story! 31 days of consistency paid off! 🏆 #SuccessStory
+                  </div>
+                  <div class="music-large">
+                    <i data-lucide="music"></i>
+                    <span>Victory Song - Grow31</span>
+                  </div>
+                  <button class="subscribe-btn" onclick="toggleSubscribe(this)">Subscribe</button>
                 </div>
               </div>
+
+              <!-- Right Actions -->
               <div class="short-actions">
                 <button class="action-btn like-btn" onclick="toggleLike(this)">
                   <i data-lucide="heart"></i>
                   <span class="action-count">3.4K</span>
+                </button>
+                <button class="action-btn dislike-btn" onclick="toggleDislike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">23</span>
                 </button>
                 <button class="action-btn comment-btn" onclick="showComments()">
                   <i data-lucide="message-circle"></i>
@@ -1189,15 +1287,12 @@
                   <i data-lucide="send"></i>
                   <span class="action-count">145</span>
                 </button>
-                <button class="action-btn more-btn" onclick="showMoreOptions()">
-                  <i data-lucide="more-horizontal"></i>
-                </button>
               </div>
-              <div class="short-user">
-                <div class="user-avatar">⭐</div>
-                <div class="user-info">
-                  <span class="username">@grow31_winner</span>
-                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+
+              <!-- Bottom Progress Bar -->
+              <div class="short-progress-container">
+                <div class="short-progress-bar">
+                  <div class="progress-fill"></div>
                 </div>
               </div>
             </div>
@@ -1212,19 +1307,44 @@
               </video>
             </div>
             <div class="short-overlay">
-              <div class="short-caption">
-                <div class="short-text">
-                  Fun challenge! Can you complete all tasks in one day? 🎮 #FunChallenge
-                </div>
-                <div class="short-music">
-                  <i data-lucide="music"></i>
-                  <span>Fun Beats - Grow31</span>
+              <!-- Top Controls -->
+              <div class="short-top-controls">
+                <button class="control-btn pause-btn" onclick="togglePlayPause(this)">
+                  <i data-lucide="pause"></i>
+                </button>
+                <button class="control-btn volume-btn" onclick="toggleVolume(this)">
+                  <i data-lucide="volume-2"></i>
+                </button>
+                <button class="control-btn menu-btn" onclick="showMenu()">
+                  <i data-lucide="more-vertical"></i>
+                </button>
+              </div>
+
+              <!-- Left Content -->
+              <div class="short-left-content">
+                <div class="user-avatar-large">🎪</div>
+                <div class="user-details">
+                  <span class="username-large">@grow31_fun</span>
+                  <div class="caption-large">
+                    Fun challenge! Can you complete all tasks in one day? 🎮 #FunChallenge
+                  </div>
+                  <div class="music-large">
+                    <i data-lucide="music"></i>
+                    <span>Fun Beats - Grow31</span>
+                  </div>
+                  <button class="subscribe-btn" onclick="toggleSubscribe(this)">Subscribe</button>
                 </div>
               </div>
+
+              <!-- Right Actions -->
               <div class="short-actions">
                 <button class="action-btn like-btn" onclick="toggleLike(this)">
                   <i data-lucide="heart"></i>
                   <span class="action-count">1.8K</span>
+                </button>
+                <button class="action-btn dislike-btn" onclick="toggleDislike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">12</span>
                 </button>
                 <button class="action-btn comment-btn" onclick="showComments()">
                   <i data-lucide="message-circle"></i>
@@ -1234,15 +1354,12 @@
                   <i data-lucide="send"></i>
                   <span class="action-count">67</span>
                 </button>
-                <button class="action-btn more-btn" onclick="showMoreOptions()">
-                  <i data-lucide="more-horizontal"></i>
-                </button>
               </div>
-              <div class="short-user">
-                <div class="user-avatar">🎪</div>
-                <div class="user-info">
-                  <span class="username">@grow31_fun</span>
-                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+
+              <!-- Bottom Progress Bar -->
+              <div class="short-progress-container">
+                <div class="short-progress-bar">
+                  <div class="progress-fill"></div>
                 </div>
               </div>
             </div>
