@@ -1457,6 +1457,12 @@ function showDashPage(pageId = 'pageHome') {
     const el = document.getElementById(p);
     if (el) el.style.display = 'none';
   });
+
+  // Clear reels auto-scroll if leaving reels page
+  if (pageId !== 'pageReels') {
+    clearAutoScroll();
+  }
+
   const pageEl = document.getElementById(pageId);
   if (!pageEl) return;
   pageEl.style.display = 'block';
@@ -1686,6 +1692,83 @@ function completeTask(tid, el) {
 function renderReels() {
   // Initialize reels functionality
   initReels();
+}
+
+// ═══════════════════════════════════════════════════════
+// REELS AUTO-SCROLL
+// ═══════════════════════════════════════════════════════
+let reelsAutoScrollInterval = null;
+let reelsContainer = null;
+let isUserInteractingWithReels = false;
+
+function initReels() {
+  reelsContainer = document.getElementById('shortsContainer');
+  if (!reelsContainer) return;
+
+  // Pause auto-scroll on user interaction
+  reelsContainer.addEventListener('scroll', () => {
+    clearAutoScroll();
+    isUserInteractingWithReels = true;
+
+    // Resume auto-scroll after 3 seconds of inactivity
+    setTimeout(() => {
+      isUserInteractingWithReels = false;
+      startReelsAutoScroll();
+    }, 3000);
+  });
+
+  reelsContainer.addEventListener('touchstart', () => {
+    clearAutoScroll();
+    isUserInteractingWithReels = true;
+  });
+
+  reelsContainer.addEventListener('touchend', () => {
+    setTimeout(() => {
+      isUserInteractingWithReels = false;
+      startReelsAutoScroll();
+    }, 3000);
+  });
+
+  reelsContainer.addEventListener('wheel', () => {
+    clearAutoScroll();
+    isUserInteractingWithReels = true;
+  }, { passive: true });
+
+  // Start auto-scroll
+  startReelsAutoScroll();
+}
+
+function startReelsAutoScroll() {
+  if (reelsAutoScrollInterval) clearInterval(reelsAutoScrollInterval);
+
+  reelsAutoScrollInterval = setInterval(() => {
+    if (!isUserInteractingWithReels && reelsContainer) {
+      const itemHeight = reelsContainer.offsetHeight;
+      const nextScrollTop = reelsContainer.scrollTop + itemHeight;
+      const maxScroll = reelsContainer.scrollHeight - reelsContainer.clientHeight;
+
+      // Scroll to next reel if not at the end, otherwise reset to beginning
+      if (nextScrollTop <= maxScroll) {
+        reelsContainer.scrollTo({
+          top: nextScrollTop,
+          behavior: 'smooth'
+        });
+      } else {
+        // Loop back to beginning
+        reelsContainer.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, 5000); // Auto-scroll every 5 seconds
+}
+
+function clearAutoScroll() {
+  if (reelsAutoScrollInterval) {
+    clearInterval(reelsAutoScrollInterval);
+    reelsAutoScrollInterval = null;
+  }
 }
 
 function renderMore() {
