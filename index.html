@@ -1,0 +1,2690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Grow31 – 31 Days. One Challenge.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+  <!-- Animated background -->
+  <div class="bg-scene">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+  <div class="noise-overlay"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- SPLASH VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div id="splashView">
+    <div class="splash-icon" onclick="goHome()" style="cursor:pointer;position:relative;z-index:9999"><img
+        src="Images/LOGO.jpeg" alt="Grow31" class="logo-image"></div>
+    <div class="splash-title">Grow31</div>
+    <div class="splash-sub" data-i18n="splash_tagline">31 Days. One Challenge. Real Rewards.</div>
+    <div class="splash-loader">
+      <div class="splash-loader-fill"></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- AUTH VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="authView">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px">
+      <div class="auth-hero">
+        <div class="auth-logo-circle"><img src="Images/LOGO.jpeg" alt="Grow31"></div>
+        <h1 class="auth-title">Grow31</h1>
+        <p class="auth-sub" style="font-size:1.08rem;color:rgba(255,255,255,0.7);font-weight:500;line-height:1.4">31
+          Days. One Challenge.<br><span style="color:#f5c518;font-weight:700">Real Rewards.</span></p>
+      </div>
+      <div class="glass-strong" style="width:100%;max-width:400px">
+        <!-- Step: Phone -->
+        <div id="stepPhone" style="padding:32px 28px">
+          <h2 id="authHeading"
+            style="font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:6px"
+            data-i18n="get_started">
+            Get Started 🚀</h2>
+          <p id="authSubtext" class="text-muted text-sm text-center" style="margin-bottom:20px"
+            data-i18n="enter_phone_to_start">Enter
+            your credentials to start your journey</p>
+
+
+          <div style="margin-bottom:16px">
+            <div style="position:relative;margin-bottom:14px">
+              <i data-lucide="user"
+                style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);width:18px;height:18px"></i>
+              <input class="input" type="text" id="usernameInput" placeholder="Username" style="padding-left:44px"
+                autocomplete="off">
+            </div>
+            <div style="position:relative;margin-bottom:14px">
+              <i data-lucide="lock"
+                style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);width:18px;height:18px"></i>
+              <input class="input" type="password" id="passwordInput" placeholder="Pass: 8+ Chars (Letters & Numbers)"
+                style="padding-left:44px" autocomplete="new-password">
+            </div>
+            <div id="phoneInputGroup" style="position:relative">
+              <span
+                style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.5);font-weight:600">+91</span>
+              <input class="input" type="tel" id="phoneInput" placeholder="Phone number" maxlength="10"
+                style="padding-left:52px" autocomplete="off">
+            </div>
+          </div>
+          <button id="authSubmitBtn" class="btn btn-white btn-full btn-lg" onclick="handleAuth()"><span
+              data-i18n="continue">Get Started</span>
+            <i data-lucide="arrow-right" style="width:18px;height:18px"></i></button>
+
+          <p class="text-center" style="margin-top:16px;font-size:.82rem;color:rgba(255,255,255,0.6)">
+            <span id="authToggleText">Already have an account?</span>
+            <a href="#" onclick="toggleAuthMode()" id="authToggleBtn"
+              style="color:#448aff;font-weight:700;text-decoration:none">Login</a>
+          </p>
+
+          <p class="text-center" style="margin-top:14px;font-size:.7rem;color:rgba(255,255,255,0.4)"><span
+              data-i18n="agree_terms">By joining, you agree to our</span> <a href="#" onclick="showView('termsView')"
+              style="text-decoration:underline;color:#448aff" data-i18n="terms_cond">Terms &amp; Conditions</a></p>
+        </div>
+        <!-- Step: OTP -->
+        <div id="stepOTP" style="padding:32px 28px;display:none">
+          <button class="back-btn" onclick="goBackToPhone()"><i data-lucide="chevron-left"
+              style="width:18px;height:18px"></i> <span data-i18n="back">Back</span></button>
+          <h2
+            style="font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:800;text-align:center;margin-bottom:6px"
+            data-i18n="verify_otp">
+            Verify OTP</h2>
+          <p class="text-muted text-sm text-center" style="margin-bottom:6px"><span data-i18n="code_sent">Code sent
+              to</span> +91 <span id="otpPhoneDisplay"></span></p>
+          <p class="text-xs text-center" style="color:rgba(68,138,255,0.7);margin-bottom:20px"
+            data-i18n="enter_6_digit">Enter the 6-digit code
+          </p>
+          <input class="input mb-4 text-center"
+            style="letter-spacing:10px;font-size:1.6rem;font-family:'Poppins',sans-serif;font-weight:700;margin-bottom:16px;padding:16px"
+            type="tel" id="otpInput" placeholder="------" maxlength="6">
+          <button class="btn btn-white btn-full btn-lg" onclick="verifyOTP()" data-i18n="verify_continue">Verify &amp;
+            Continue</button>
+          <div class="otp-resend-row">
+            <span class="resend-timer" id="otpResendTimer">Resend OTP in <b id="otpCountdown">60</b>s</span>
+            <span class="resend-btn" id="otpResendBtn" onclick="resendOTP()">Resend OTP</span>
+          </div>
+        </div>
+        <!-- Step: Referral -->
+        <div id="stepReferral" style="padding:28px;display:none">
+          <button class="back-btn" onclick="goBackToPhone()"><i data-lucide="chevron-left"
+              style="width:18px;height:18px"></i> <span data-i18n="back">Back</span></button>
+          <h2
+            style="font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:700;text-align:center;margin-bottom:6px"
+            data-i18n="welcome">
+            Welcome! 🎉</h2>
+          <p class="text-muted text-sm text-center" style="margin-bottom:20px" data-i18n="have_ref_code">Have a referral
+            code? Earn bonus coins!
+          </p>
+          <input class="input" type="text" id="refCodeInput" placeholder="Referral code (optional)"
+            style="margin-bottom:12px;text-transform:uppercase">
+          <div
+            style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);border-radius:10px;padding:10px 14px;margin-bottom:16px">
+            <p class="text-xs" style="color:#00e676">🎁 Use a referral code to get +50 bonus coins on signup!</p>
+          </div>
+          <button class="btn btn-white btn-full btn-lg" onclick="completeSignup()" style="margin-bottom:12px"><span
+              data-i18n="finish_setup">Finish
+              Setup</span> →</button>
+          <p class="text-center"><a href="#" onclick="completeSignup()" class="text-muted text-xs"
+              style="text-decoration:underline" data-i18n="skip_for_now">Skip for now</a></p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;justify-content:center">
+        <span class="badge badge-blue">🎯 Daily Tasks</span>
+        <span class="badge badge-yellow"><span class="g-coin"></span> Coin Rewards</span>
+        <span class="badge badge-green">🏆 Leaderboard</span>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;justify-content:center;align-items:center">
+        <a href="https://www.instagram.com/_grow31?igsh=ZTdneTg0OXVkYTRy&utm_source=qr" target="_blank"
+          class="social-btn" style="color:#e91e63;background:rgba(225,48,108,0.15);border-color:rgba(225,48,108,0.2)">
+          <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor">
+            <path
+              d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.65 0 3 1.35 3 3v10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10zm-5 3.5A4.5 4.5 0 1 0 16.5 12 4.51 4.51 0 0 0 12 7.5zm0 7.5a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm4.75-8.75a1.25 1.25 0 1 1-1.25 1.25 1.25 1.25 0 0 1 1.25-1.25z" />
+          </svg>
+        </a>
+        <a href="https://youtube.com/@grow31-u3s?si=RVZX6ZbiKUb6jhWq" target="_blank" class="social-btn"
+          style="color:#ff5252;background:rgba(255,0,0,0.12);border-color:rgba(255,0,0,0.2)">
+          <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:currentColor">
+            <path
+              d="M21.8 8.4c-.2-.8-.7-1.4-1.4-1.8C18.6 6 12 6 12 6s-6.6 0-8.4.6c-.7.4-1.2 1-1.4 1.8-.3 1.3-.3 4-.3 4s0 2.7.3 4c.2.8.7 1.4 1.4 1.8 1.8.6 8.4.6 8.4.6s6.6 0 8.4-.6c.7-.4 1.2-1 1.4-1.8.3-1.3.3-4 .3-4s0-2.7-.3-4zM10 15.5V8.5l6 3.5-6 3.5z" />
+          </svg>
+        </a>
+        <a href="https://t.me/+JhvCkrA8Fg8yZTVl" target="_blank" class="social-btn"
+          style="color:#0088cc;background:rgba(0,119,181,0.15);border-color:rgba(0,119,181,0.2)">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <circle cx="16" cy="16" r="14" fill="url(#paint0_linear_87_7225)"></circle>
+              <path
+                d="M22.9866 10.2088C23.1112 9.40332 22.3454 8.76755 21.6292 9.082L7.36482 15.3448C6.85123 15.5703 6.8888 16.3483 7.42147 16.5179L10.3631 17.4547C10.9246 17.6335 11.5325 17.541 12.0228 17.2023L18.655 12.6203C18.855 12.4821 19.073 12.7665 18.9021 12.9426L14.1281 17.8646C13.665 18.3421 13.7569 19.1512 14.314 19.5005L19.659 22.8523C20.2585 23.2282 21.0297 22.8506 21.1418 22.1261L22.9866 10.2088Z"
+                fill="white"></path>
+              <defs>
+                <linearGradient id="paint0_linear_87_7225" x1="16" y1="2" x2="16" y2="30"
+                  gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#37BBFE"></stop>
+                  <stop offset="1" stop-color="#007DBB"></stop>
+                </linearGradient>
+              </defs>
+            </g>
+          </svg> </a>
+        <a href="https://wa.me/message/Y2CDYZEVKWA3M1" target="_blank" class="social-btn"
+          style="color:#25d366;background:rgba(37,211,102,0.12);border-color:rgba(37,211,102,0.2)">
+          <svg width="100px" height="100px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
+                fill="#BFC8D0"></path>
+              <path
+                d="M28 16C28 22.6274 22.6274 28 16 28C13.4722 28 11.1269 27.2184 9.19266 25.8837L5.09091 26.9091L6.16576 22.8784C4.80092 20.9307 4 18.5589 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16Z"
+                fill="url(#paint0_linear_87_7264)"></path>
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M16 30C23.732 30 30 23.732 30 16C30 8.26801 23.732 2 16 2C8.26801 2 2 8.26801 2 16C2 18.5109 2.661 20.8674 3.81847 22.905L2 30L9.31486 28.3038C11.3014 29.3854 13.5789 30 16 30ZM16 27.8462C22.5425 27.8462 27.8462 22.5425 27.8462 16C27.8462 9.45755 22.5425 4.15385 16 4.15385C9.45755 4.15385 4.15385 9.45755 4.15385 16C4.15385 18.5261 4.9445 20.8675 6.29184 22.7902L5.23077 26.7692L9.27993 25.7569C11.1894 27.0746 13.5046 27.8462 16 27.8462Z"
+                fill="white"></path>
+              <path
+                d="M12.5 9.49989C12.1672 8.83131 11.6565 8.8905 11.1407 8.8905C10.2188 8.8905 8.78125 9.99478 8.78125 12.05C8.78125 13.7343 9.52345 15.578 12.0244 18.3361C14.438 20.9979 17.6094 22.3748 20.2422 22.3279C22.875 22.2811 23.4167 20.0154 23.4167 19.2503C23.4167 18.9112 23.2062 18.742 23.0613 18.696C22.1641 18.2654 20.5093 17.4631 20.1328 17.3124C19.7563 17.1617 19.5597 17.3656 19.4375 17.4765C19.0961 17.8018 18.4193 18.7608 18.1875 18.9765C17.9558 19.1922 17.6103 19.083 17.4665 19.0015C16.9374 18.7892 15.5029 18.1511 14.3595 17.0426C12.9453 15.6718 12.8623 15.2001 12.5959 14.7803C12.3828 14.4444 12.5392 14.2384 12.6172 14.1483C12.9219 13.7968 13.3426 13.254 13.5313 12.9843C13.7199 12.7145 13.5702 12.305 13.4803 12.05C13.0938 10.953 12.7663 10.0347 12.5 9.49989Z"
+                fill="white"></path>
+              <defs>
+                <linearGradient id="paint0_linear_87_7264" x1="26.5" y1="7" x2="4" y2="28"
+                  gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#5BD066"></stop>
+                  <stop offset="1" stop-color="#27B43E"></stop>
+                </linearGradient>
+              </defs>
+            </g>
+          </svg> </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- TERMS VIEW (before payment) -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="termsView">
+    <div class="app-header">
+      <button class="back-btn" onclick="showView('authView')" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" onclick="goHome()"><img src="Images/LOGO.jpeg" alt="Grow31" class="app-logo"> Grow31</div>
+      <div class="flex items-center gap-2">
+        <div class="coins-pill" style="cursor:pointer" onclick="openWalletDialog()"><span class="g-coin"></span> <span
+            id="termsCoins">0</span></div>
+        <button class="dots-btn" onclick="openDrawer()"><i data-lucide="menu"
+            style="width:20px;height:20px"></i></button>
+      </div>
+    </div>
+    <div style="padding:20px 20px;max-width:480px;margin:0 auto;width:100%;flex:1;display:flex;flex-direction:column">
+      <h2 class="section-heading" style="font-size:1.3rem;margin-bottom:14px"><i data-lucide="file-text"
+          style="width:20px;height:20px"></i> <span data-i18n="read_accept_policies">Read &amp; Accept Policies</span>
+      </h2>
+      <div class="terms-tab-nav">
+        <button class="terms-tab-btn active" onclick="switchTermsTab('tc',this)" data-i18n="tc_tab">T&amp;C</button>
+        <button class="terms-tab-btn" onclick="switchTermsTab('privacy',this)" data-i18n="privacy_tab">Privacy</button>
+        <button class="terms-tab-btn" onclick="switchTermsTab('refund',this)" data-i18n="refund_tab">Refund</button>
+      </div>
+      <!-- T&C -->
+      <!-- T&C -->
+      <div class="terms-body terms-tab-panel active collapsed" id="tpanel-tc" style="flex:none;margin-bottom:10px">
+        <h3>GROW31 - TERMS & CONDITIONS</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Last Updated: April 2026</p>
+
+        <h4>1. ACCEPTANCE OF TERMS</h4>
+        <p>By downloading, installing, or using the Grow31 application ("App"), you agree to be bound by these Terms &
+          Conditions ("Terms"). If you do not agree to these Terms, please do not use the App.</p>
+        <p>Grow31 ("We", "Us", "Our", "Company") reserves the right to modify these Terms at any time. Continued use of
+          the App after such modifications constitutes your acceptance of the updated Terms.</p>
+
+        <h4>2. LICENSE AND USE</h4>
+        <p><b>2.1 License Grant:</b> We grant you a limited, non-exclusive, non-transferable, revocable license to use
+          this App for personal, non-commercial purposes only.</p>
+        <p><b>2.2 Restrictions:</b> You agree NOT to: Copy, modify, or distribute the App; Reverse engineer or attempt
+          to derive source code; Use the App for any illegal purpose; Access via automated means or bots; Attempt
+          unauthorized access; Sell, rent, or lease the App; Create derivative works; Harass, threaten, or harm others;
+          Spam, phish, or engage in fraudulent activity.</p>
+
+        <h4>3. USER ACCOUNTS AND REGISTRATION</h4>
+        <p><b>3.1 Account Creation:</b> To use certain features, you must create an account. You agree to: Provide
+          accurate information; Maintain confidentiality of credentials; Notify us of unauthorized access; Be
+          responsible for all activities under your account.</p>
+        <p><b>3.2 Account Eligibility:</b> You must be at least 18 years old; Be a legal resident of India or another
+          supported country; One account per person (duplicate accounts are prohibited).</p>
+
+        <h4>4. PAYMENTS AND SUBSCRIPTIONS</h4>
+        <p><b>4.1 Pricing:</b> All prices are in Indian Rupees (INR) unless stated otherwise; Prices subject to change
+          with 30 days' notice; Taxes may apply.</p>
+        <p><b>4.2 In-App Purchases:</b> Various digital goods and services are available. All purchases are final unless
+          the refund policy applies. We are not responsible for accidental purchases.</p>
+        <p><b>4.3 Billing:</b> Payment is charged to your registered method. Refunds follow our Refund Policy (Section
+          7). We are not responsible for processing delays or disputes handled by providers.</p>
+
+        <h4>5. INTELLECTUAL PROPERTY RIGHTS</h4>
+        <p><b>5.1 Ownership:</b> All content in the App (text, graphics, videos, code, design) is owned by Grow31 or our
+          licensors and is protected by copyright laws.</p>
+        <p><b>5.2 User Content:</b> You retain ownership of content you create. You grant us permission to use, store,
+          and display it. We may use anonymized data for analytics.</p>
+
+        <h4>6. LIMITATION OF LIABILITY</h4>
+        <p><b>6.1 AS-IS BASIS:</b> The App is provided "AS-IS" without warranties. We do not warrant uninterrupted or
+          error-free service, or specific results.</p>
+        <p><b>6.2 LIABILITY CAP:</b> Our total liability shall not exceed the amount you paid in the past 12 months, or
+          Rs.10,000 (whichever is lesser).</p>
+        <p><b>6.3 NO LIABILITY FOR:</b> Loss of data, profits, business; indirect or consequential damages; third-party
+          actions; server downtime; force majeure.</p>
+
+        <h4>7. INDEMNIFICATION</h4>
+        <p>You agree to defend and indemnify us against claims arising from your violation of these Terms, misuse of the
+          App, infringement of rights, or breach of laws.</p>
+
+        <h4>8. THIRD-PARTY LINKS AND CONTENT</h4>
+        <p>We are NOT responsible for third-party content, accuracy, or damages. Use of third-party services is governed
+          by THEIR terms.</p>
+
+        <h4>9. USER CONDUCT</h4>
+        <p>You agree NOT to: Post offensive content; Engage in harassment; Share others' personal info without consent;
+          Violate laws; Disrupt the community; Impersonate others; Create fake accounts.</p>
+
+        <h4>10. DISPUTE RESOLUTION</h4>
+        <p><b>10.1 Governing Law:</b> These Terms are governed by the laws of India. Jurisdiction: New Delhi, India.</p>
+        <p><b>10.2 Arbitration:</b> Disputes will be resolved through good faith negotiation (7 days), mediation, or
+          arbitration under the Indian Arbitration Act, 1996.</p>
+
+        <h4>11. TERMINATION</h4>
+        <p>We may terminate your account for violations, illegal activity, or abuse. Upon termination, your license ends
+          and access is lost.</p>
+
+        <h4>12. CHANGES TO THE APP</h4>
+        <p>We may update, modify, or discontinue the App or features with 30 days' notice. Continued use means
+          acceptance.</p>
+
+        <h4>13. CONTACT US</h4>
+        <p>Email: legal@grow31.app<br>Support: support@grow31.app</p>
+      </div>
+
+      <!-- Privacy Policy -->
+      <div class="terms-body terms-tab-panel collapsed" id="tpanel-privacy" style="flex:none;margin-bottom:10px">
+        <h3>GROW31 - PRIVACY POLICY</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Effective Date: April 2026</p>
+
+        <h4>1. INTRODUCTION</h4>
+        <p>We are committed to protecting your privacy. This policy explains how we collect, use, and safeguard your
+          info. If you do not agree, please do not use the App.</p>
+
+        <h4>2. INFORMATION WE COLLECT</h4>
+        <p><b>2.1 Information You Provide:</b> Account Info (Name, Email, Phone, Profile Pic, Encrypted Password); Usage
+          Data (Goals, Progress, Posts, Settings). NOTE: We do NOT store payment card details.</p>
+        <p><b>2.2 Information Collected Automatically:</b> Device Info (Model, OS, App version, IP, ID); Usage Info
+          (Features accessed, Time spent, Crashes). We do NOT collect GPS location.</p>
+        <p><b>2.3 Third Parties:</b> Social media logins, Payment processors, Analytics, Support interactions.</p>
+
+        <h4>3. HOW WE USE YOUR INFORMATION</h4>
+        <p><b>3.1 Service Delivery:</b> Managing accounts, processing payments, support.</p>
+        <p><b>3.2 Improvement:</b> Analyzing behavior, fixing bugs, testing features.</p>
+        <p><b>3.3 Communication:</b> Sending updates, marketing (with consent), responding to inquiries.</p>
+        <p><b>3.4 Legal:</b> Preventing fraud, complying with obligations.</p>
+
+        <h4>4. DATA SHARING AND DISCLOSURE</h4>
+        <p><b>4.1 Service Providers:</b> We share with payment processors (Razorpay), cloud hosting, and analytics. They
+          must keep data secure.</p>
+        <p><b>4.2 Legal Requirements:</b> We may disclose info if required by court orders or law enforcement.</p>
+        <p><b>4.3 NO Marketing Sharing:</b> We do NOT sell or rent your personal data to third-party marketers.</p>
+
+        <h4>5. DATA RETENTION</h4>
+        <p>Account info is kept while active. Usage data for 24 months. Personal data from deleted accounts is removed
+          within 30 days.</p>
+
+        <h4>6. DATA SECURITY</h4>
+        <p>We use SSL/TLS encryption, secure hashing, and audits. While we use industry standards, no system is 100%
+          secure. Breach notifications will be sent within 72 hours.</p>
+
+        <h4>7. YOUR RIGHTS</h4>
+        <p>Under India's DPDP Act 2023, you have the right to access, correct, or delete your data, and withdraw
+          consent. Contact privacy@grow31.app.</p>
+
+        <h4>8. COOKIES AND TRACKING</h4>
+        <p>We use cookies for sessions, preferences, and analytics. You can opt-out of Google Analytics tracking.</p>
+
+        <h4>9. CHILDREN'S PRIVACY</h4>
+        <p>The App is NOT intended for users under 18. We delete data if we discover a minor has provided it.</p>
+
+        <h4>10. CONTACT US</h4>
+        <p>Email: privacy@grow31.app<br>Address: Grow31, India</p>
+      </div>
+
+      <!-- Refund Policy -->
+      <div class="terms-body terms-tab-panel collapsed" id="tpanel-refund" style="flex:none;margin-bottom:10px">
+        <h3>GROW31 - REFUND & CANCELLATION POLICY</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Effective Date: April 2026</p>
+
+        <h4>1. REFUND ELIGIBILITY</h4>
+        <p><b>1.1 Refundable:</b> In-App Purchases within 7 days if not used/activated. 100% refund (max 2 per month).
+        </p>
+        <p><b>1.2 Non-Refundable:</b> Used/activated items, content accessed, rewards earned, prizes won, or purchases
+          over 7 days old.</p>
+
+        <h4>2. REFUND PROCESS</h4>
+        <p>Request via Settings -> Payment History in the app, or email support@grow31.app with your Transaction ID.
+          Processed within 7-14 business days to the original payment method.</p>
+
+        <h4>3. SPECIAL SCENARIOS</h4>
+        <p><b>3.1 Technical Issues:</b> Eligible if app is non-functional and we cannot fix it within 24 hours.</p>
+        <p><b>3.2 Duplicate Charges:</b> Refunded within 48 hours of reporting.</p>
+        <p><b>3.3 Unauthorized Transactions:</b> Investigated within 5-10 days; refund issued after confirmation.</p>
+
+        <h4>4. DISPUTE RESOLUTION</h4>
+        <p>Handled via App Stores or Razorpay. Escalations follow good faith negotiation and mediation.</p>
+
+        <h4>5. REFUND ABUSE POLICY</h4>
+        <p>We may deny refunds or suspend accounts if abuse patterns are detected (e.g., multiple refunds for same
+          service).</p>
+
+        <h4>6. APP DISCONTINUATION</h4>
+        <p>If discontinued, 30 days notice will be given with full refund for unused services.</p>
+
+        <h4>7. CONTACT & SUPPORT</h4>
+        <p>Email: support@grow31.app<br>Hours: Mon-Fri, 9 AM - 6 PM IST</p>
+      </div>
+      <div id="termsReadMore"
+        style="text-align:center;margin-top:-30px;margin-bottom:20px;position:relative;z-index:20">
+        <button class="btn btn-sm" onclick="expandTerms(this)"
+          style="background:#050510;color:#fff;padding:10px 24px;border-radius:30px;font-size:.85rem;box-shadow:0 6px 16px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);font-weight:700"
+          data-i18n="show_more">Show More</button>
+      </div>
+      <label
+        style="display:flex;align-items:center;gap:12px;margin-bottom:20px;cursor:pointer;padding:14px;background:rgba(68,138,255,0.08);border-radius:12px;border:1px solid rgba(68,138,255,0.2)">
+        <input type="checkbox" id="termsCheck" style="width:18px;height:18px;accent-color:#448aff">
+        <span style="font-size:.9rem" data-i18n="i_agree_terms">I have read and agree to the T&amp;C, Privacy Policy
+          &amp; Refund Policy</span>
+      </label>
+      <button class="btn btn-white btn-full btn-lg" onclick="acceptTerms()"><span data-i18n="accept_continue">Accept
+          &amp; Continue</span> →</button>
+    </div>
+  </div>
+
+  <div class="view" id="paymentView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" onclick="goHome()"><img src="Images/LOGO.jpeg" alt="Grow31" class="app-logo"> Grow31</div>
+      <span class="badge badge-green" style="font-size:.7rem" data-i18n="secure">🔒 Secure</span>
+    </div>
+    <div style="padding:24px 20px;max-width:440px;margin:0 auto;width:100%;flex:1">
+      <h2 class="section-heading" style="font-size:1.5rem;margin-bottom:6px"><span data-i18n="join_challenge">Join the
+          Challenge</span> <i data-lucide="rocket" style="width:22px;height:22px"></i></h2>
+      <p class="text-muted text-sm" style="margin-bottom:12px" data-i18n="payment_meta">One-time payment · Instant
+        access · No hidden fees</p>
+      <div id="paymentTierInfo"></div>
+      <div class="card mb-4"
+        style="margin-bottom:16px;padding:16px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;">
+        <span class="trust-badge green"><i data-lucide="lock" style="width:14px;height:14px"></i> <span
+            data-i18n="secure_checkout">Secure Checkout</span></span>
+        <span class="trust-badge blue"><i data-lucide="shield-check" style="width:14px;height:14px"></i> <span
+            data-i18n="trusted_gateway">Trusted
+            Gateway</span></span>
+        <span class="trust-badge yellow"><i data-lucide="check-circle" style="width:14px;height:14px"></i> <span
+            data-i18n="no_hidden_fees">No Hidden
+            Fees</span></span>
+        <p class="text-muted text-xs" style="margin:0;width:100%;text-align:center;line-height:1.5;opacity:.85"
+          data-i18n="payment_trust_desc">Trusted
+          payment experience with secure verification and strong trust signals for every user.</p>
+      </div>
+
+      <!-- Price card -->
+      <div class="card mb-4" style="margin-bottom:16px;overflow:hidden">
+        <div
+          style="padding:32px 28px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);background:linear-gradient(135deg,rgba(68,138,255,0.06),rgba(206,147,216,0.04))">
+          <p class="text-muted text-xs" style="margin-bottom:4px;letter-spacing:.08em;text-transform:uppercase"
+            data-i18n="entry_fee">Entry
+            Fee</p>
+          <div id="paymentPriceDisplay" class="price-display" style="font-size:4rem">₹1</div>
+          <p id="paymentPriceMeta" class="text-muted" style="margin-top:4px;font-size:.9rem"
+            data-i18n="base_tier_price">Base tier price · All 31
+            Days</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+            <span class="badge badge-green">✅ <span data-i18n="secure">Secure</span></span>
+            <span class="badge badge-blue">🔒 <span data-i18n="sandbox_mode">Sandbox Mode</span></span>
+            <span class="badge badge-yellow">💯 <span data-i18n="instant_access">Instant Access</span></span>
+          </div>
+        </div>
+        <div class="card-content" style="padding:20px 24px">
+          <div class="price-feature">
+            <div class="price-feature-icon"><i data-lucide="calendar"></i></div><span
+              data-i18n="feat_full_access">31-Day Challenge Full Access</span>
+          </div>
+          <div class="price-feature">
+            <div class="price-feature-icon"><span class="g-coin"></span></div><span data-i18n="feat_coin_rewards">Daily
+              Coin Rewards + Bonuses</span>
+          </div>
+          <div class="price-feature">
+            <div class="price-feature-icon"><i data-lucide="layers"></i></div><span
+              data-i18n="feat_tier_assignment">Auto Tier Assignment (Tiers 1-31)</span>
+          </div>
+          <div class="price-feature">
+            <div class="price-feature-icon"><i data-lucide="disc-3"></i></div><span data-i18n="feat_spin_wheel">Spin
+              Wheel – Win Big Prizes</span>
+          </div>
+          <div class="price-feature">
+            <div class="price-feature-icon"><i data-lucide="trophy"></i></div><span
+              data-i18n="feat_leaderboard">Leaderboard &amp; Pool Wins</span>
+          </div>
+          <div class="price-feature">
+            <div class="price-feature-icon"><i data-lucide="users"></i></div><span data-i18n="feat_referral">Referral
+              Commissions</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-white btn-full btn-lg" onclick="processPayment()" id="payBtn"
+        style="padding:18px;font-size:1.05rem">
+        <span id="payBtnText" data-i18n="pay_start_challenge">Pay Tier Price &amp; Start Challenge →</span>
+      </button>
+      <p class="text-muted text-xs text-center" style="margin-top:12px;opacity:.5" data-i18n="demo_pay_msg">🔒 Demo
+        payment enabled · no live gateway integration</p>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- CONFIRM VIEW (Processing/Success) -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="confirmView">
+    <div
+      style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center">
+      <div
+        style="width:100%;max-width:480px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+        <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+            style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+        <div style="flex:1;text-align:center;font-weight:800;color:#fff" data-i18n="processing">Processing</div>
+        <div style="width:60px"></div>
+      </div>
+      <div id="confirmSpinner" class="confirm-spinner"></div>
+      <div id="confirmSuccess" style="display:none">
+        <div class="confirm-anim"><i data-lucide="check-circle" style="width:64px;height:64px;color:#00e676"></i></div>
+        <h2 class="font-syne" style="font-size:1.8rem;font-weight:800;margin-bottom:8px" data-i18n="payment_success">
+          Payment Successful!</h2>
+        <p id="confirmDetails" class="text-muted" style="margin-bottom:16px;font-size:.95rem"
+          data-i18n="tier_confirmed">Your tier purchase is
+          confirmed.</p>
+        <button class="btn btn-white btn-lg" onclick="afterPayment()" data-i18n="continue_profile">Continue to Profile
+          Setup →</button>
+      </div>
+      <p id="confirmMsg" class="text-muted" style="margin-top:16px;font-size:.9rem" data-i18n="processing_payment">
+        Processing your payment...</p>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- PROFILE SETUP VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="profileSetupView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" onclick="goHome()"><img src="Images/LOGO.jpeg" alt="Grow31" class="app-logo"> Grow31</div>
+      <div style="width:60px"></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px">
+      <div style="width:100%;max-width:400px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="position:relative;display:inline-block">
+            <div class="avatar-sleek" id="avatarPickerBtn" onclick="openAvatarPicker()"
+              style="width:80px;height:80px;font-size:2rem;margin-bottom:12px;border-width:3px">
+              <span id="avatarEmoji">🧑</span>
+            </div>
+            <div onclick="openAvatarPicker()"
+              style="position:absolute;bottom:0;right:0;background:#448aff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #050510;cursor:pointer">
+              <i data-lucide="camera" style="width:12px;height:12px;color:white"></i>
+            </div>
+          </div>
+          <p class="text-xs" style="color:#448aff;font-weight:600;margin-bottom:12px;cursor:pointer"
+            onclick="openAvatarPicker()" data-i18n="tap_to_change">Tap to change</p>
+          <h2 class="font-syne" style="font-size:1.4rem;font-weight:800;margin-bottom:6px" data-i18n="complete_profile">
+            Complete Your Profile</h2>
+          <p class="text-muted text-sm" data-i18n="profile_desc">Set up your profile to unlock your referral ID and earn
+            coins!</p>
+        </div>
+        <div class="glass-strong" style="padding:24px">
+          <p class="card-title" style="margin-bottom:16px" data-i18n="your_details">Your Details</p>
+          <input class="input" id="usernameInput" placeholder="Username (e.g. GrowChamp)" style="margin-bottom:12px"
+            maxlength="20" data-i18n="username_placeholder">
+          <select class="input" id="countrySelect" style="margin-bottom:12px">
+            <option value="IN">🇮🇳 India</option>
+            <option value="US">🇺🇸 United States</option>
+            <option value="UK">🇬🇧 United Kingdom</option>
+            <option value="AE">🇦🇪 UAE</option>
+            <option value="SG">🇸🇬 Singapore</option>
+          </select>
+          <select class="input" id="langSelect" style="margin-bottom:20px">
+            <option value="en">English</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+            <option value="bn">বাংলা (Bengali)</option>
+          </select>
+          <button class="btn btn-white btn-full btn-lg" onclick="saveProfile()" style="margin-bottom:14px"
+            data-i18n="save_get_id">Save &amp;
+            Get My Referral ID 🎉</button>
+          <p class="text-center"><a href="#" onclick="skipProfile()" class="text-muted text-xs"
+              style="text-decoration:underline">Skip for now</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMOJI PICKER DIALOG -->
+  <div class="dialog-overlay" id="emojiDialog">
+    <div class="dialog" style="max-width:340px">
+      <button class="dialog-close" onclick="closeDialog('emojiDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:12px" data-i18n="pick_avatar">Pick
+        Avatar</h3>
+      <input type="file" id="avatarPhotoInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
+      <button class="btn btn-outline btn-full btn-sm" onclick="triggerPhotoUpload()"
+        style="margin-bottom:14px;font-size:.85rem;background:rgba(68,138,255,0.1)" data-i18n="upload_photo">📷 Upload
+        Personal Photo</button>
+      <p style="font-size:.72rem;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase"
+        data-i18n="or_choose_emoji">
+        — Or choose an emoji —</p>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+        <!-- avatars rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- DASHBOARD VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="dashView">
+    <!-- HEADER -->
+    <div class="app-header">
+      <div class="logo-text" onclick="goHome()">
+        <img src="Images/LOGO.jpeg" alt="Grow31" class="app-logo" style="box-shadow:0 4px 15px rgba(68,138,255,0.4)">
+        <span style="letter-spacing:-0.5px">Grow31</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="coins-pill" style="cursor:pointer" onclick="openWalletDialog()"><span class="g-coin"></span> <span
+            id="headerCoins">0</span>
+        </div>
+        <button class="dots-btn" onclick="openDrawer()"><i data-lucide="menu"
+            style="width:20px;height:20px"></i></button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PAGES (only one active at a time) -->
+    <div style="flex:1;overflow:hidden;position:relative">
+      <!-- ─── HOME PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageHome" style="display:block">
+        <!-- Profile greeting -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:4px 0">
+          <div class="avatar-sleek" id="dashAvatar"
+            style="width:52px;height:52px;font-size:1.5rem;flex-shrink:0;margin:0;border-width:2.5px">
+            🧑
+          </div>
+          <div style="flex:1;min-width:0">
+            <h2
+              style="font-family:'Poppins',sans-serif;font-size:1.35rem;font-weight:800;letter-spacing:-0.5px;line-height:1.2">
+              Hi, <span id="userName">User</span>! 👋</h2>
+            <p class="text-muted" style="font-size:.82rem;margin-top:2px"><span data-i18n="day">Day</span> <span
+                id="userDay">1</span> <span data-i18n="of">of</span> 31 · <span data-i18n="keep_going">Keep going!
+                🔥</span></p>
+          </div>
+          <div style="flex-shrink:0">
+            <button class="btn btn-outline" onclick="showDashPage('pageLeader')"
+              style="width:46px;height:46px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(255,255,255,0.04);border-color:rgba(255,215,0,0.2)">
+              <i data-lucide="crown" style="width:22px;height:22px;color:#FFD700"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- BANNER AD SPACE 1 -->
+        <div class="banner-ad" style="margin-bottom:12px">
+          <span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem" data-i18n="ad_space">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem" data-i18n="ad_desc">Your ad here · Contact us</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+
+
+        <!-- DAILY CHECK-IN SECTION -->
+        <div class="card mb-4"
+          style="margin-bottom:14px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(68,138,255,0.12));border:1px solid rgba(0,230,118,0.3);backdrop-filter:blur(10px);padding:0;overflow:hidden;position:relative">
+          <div
+            style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(0,230,118,0.1),transparent);border-radius:50%;transform:translate(20px,-20px);pointer-events:none">
+          </div>
+          <div class="card-content"
+            style="text-align:center;padding:20px 18px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
+            <div
+              style="font-size:2.2rem;margin-bottom:10px;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:rgba(0,230,118,0.15);border-radius:12px;margin-bottom:12px">
+              📅</div>
+            <p style="font-weight:700;font-size:.98rem;margin-bottom:3px;letter-spacing:.3px" data-i18n="daily_checkin">
+              Daily Check-In</p>
+            <p class="text-muted text-xs" style="margin-bottom:14px;font-size:.8rem;line-height:1.4"
+              data-i18n="claim_bonus">Claim your daily
+              bonus to keep your streak alive! 🔥</p>
+            <button class="btn btn-sm" id="homeCheckInBtn" onclick="doCheckIn()"
+              style="background:linear-gradient(135deg,#00e676,#1de9b6);color:#000;font-weight:700;border:none;box-shadow:0 4px 16px rgba(0,230,118,0.3);transition:all .3s ease;width:100%;max-width:240px">
+              <i data-lucide="check-circle" style="width:16px;height:16px"></i> <span data-i18n="checkin_btn">Check In
+                Today</span> (+5 <span class="g-coin"></span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- GAMIFIED FLOATING COINS ELEMENT -->
+        <div class="float-coins-wrap" id="gamifiedWrap"
+          style="background:linear-gradient(135deg,rgba(156,39,176,0.12),rgba(68,138,255,0.06));border:1px solid rgba(156,39,176,0.25);">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <p style="font-weight:700;font-size:.92rem;margin-bottom:2px">🚀 <span data-i18n="challenge_active">31-Day
+                  Challenge Active!</span></p>
+              <p class="text-muted text-xs" data-i18n="complete_tasks">Complete tasks daily to climb the leaderboard</p>
+            </div>
+            <div style="text-align:center;min-width:60px">
+              <div style="font-family:'Poppins',sans-serif;font-size:1.5rem;font-weight:800;color:#ce93d8"
+                id="gamifiedCoins">0</div>
+              <p class="text-xs text-muted" data-i18n="coins">coins</p>
+            </div>
+          </div>
+          <div class="progress-track" style="height:5px;margin-top:10px">
+            <div class="progress-fill" id="homeProgressFill" style="width:3%"></div>
+          </div>
+          <p class="text-xs text-muted" style="margin-top:6px"><span data-i18n="day">Day</span> <span
+              id="homeProgressDay">1</span> of 31</p>
+          <!-- floating coins -->
+          <span class="float-coin" style="left:10%;animation-delay:0s"><span class="g-coin"></span></span>
+          <span class="float-coin" style="left:35%;animation-delay:1.2s">✨</span>
+          <span class="float-coin" style="left:65%;animation-delay:0.7s"><span class="g-coin"></span></span>
+          <span class="float-coin" style="left:85%;animation-delay:2s">⭐</span>
+        </div>
+
+        <!-- COMPLETE PROFILE CTA (if not completed) -->
+        <div class="complete-profile-card" id="completeProfileCard" onclick="goToProfileSetup()">
+          <div class="avatar-sleek" id="completeProfileAvatar"
+            style="width:40px;height:40px;font-size:1rem;flex-shrink:0;margin:0;background:rgba(206,147,216,0.15)">
+            <i data-lucide="gift" style="width:20px;height:20px;color:#ce93d8"></i>
+          </div>
+          <div style="flex:1">
+            <p style="font-weight:700;font-size:.95rem;margin-bottom:2px" data-i18n="complete_profile_cta">Complete Your
+              Profile</p>
+            <p class="text-muted" style="font-size:.78rem" data-i18n="get_ref_id_bonus">Get your Referral ID &amp; earn
+              5 bonus coins</p>
+            <div class="progress-track" style="height:5px;margin-top:8px">
+              <div class="progress-fill" id="profileProgress" style="width:40%"></div>
+            </div>
+          </div>
+          <span style="color:rgba(255,255,255,0.3);font-size:.9rem">→</span>
+        </div>
+
+        <!-- REFERRAL INVITE CARD (highlighted) -->
+        <div class="invite-card invite-card-glow mb-4" onclick="openReferralDialog()" style="margin-bottom:14px">
+          <div>
+            <p style="font-weight:700;font-size:.95rem;margin-bottom:3px"><i data-lucide="users"
+                style="width:18px;height:18px"></i> <span data-i18n="invite_friends">Invite Friends</span></p>
+            <p style="font-size:.78rem;color:rgba(255,255,255,0.5)">Earn <span style="color:#00e676;font-weight:700"
+                id="homeRefCoins">+50 coins</span> per referral 🎁</p>
+            <p style="font-size:.72rem;color:rgba(0,230,118,0.7);margin-top:3px">Your code: <span id="homeRefCode"
+                style="font-weight:700;font-family:'Poppins',sans-serif;letter-spacing:2px">—</span></p>
+          </div>
+          <button class="btn btn-green btn-sm" style="pointer-events:none;flex-shrink:0">Invite <i
+              data-lucide="arrow-right" style="width:14px;height:14px"></i></button>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="grid-2 mb-4" style="margin-bottom:14px">
+          <div class="card stat-card">
+            <div class="stat-icon"><i data-lucide="zap" style="width:16px;height:16px"></i> <span
+                data-i18n="streak">Streak</span></div>
+            <div class="stat-val" id="statStreak" style="color:#ff7043">0</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-icon"><i data-lucide="trophy" style="width:16px;height:16px"></i> <span
+                data-i18n="rank">Rank</span></div>
+            <div class="stat-val" id="statRank" style="color:#f5c518">#–</div>
+          </div>
+        </div>
+
+        <!-- TODAY'S TASKS MINI -->
+        <div class="card mb-4" style="margin-bottom:14px">
+          <div class="card-header"
+            style="display:flex;justify-content:space-between;align-items:center;padding-bottom:0">
+            <div class="card-title" data-i18n="today_tasks">Today's Tasks</div>
+            <button class="btn btn-outline btn-sm" style="font-size:.7rem;padding:4px 10px"
+              onclick="showDashPage('pageTasks')" data-i18n="see_all">See All</button>
+          </div>
+          <div id="miniTasksList" style="padding:8px 16px 16px"></div>
+        </div>
+
+        <!-- QUICK ACTIONS GRID -->
+        <div class="grid-2 mb-4" style="margin-bottom:14px">
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="showDashPage('pageSpin')">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="disc-3" style="width:32px;height:32px"></i>
+            </div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="spin_wheel">Spin Wheel</p>
+            <p class="text-muted text-xs" data-i18n="win_big">Win big coins!</p>
+          </div>
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="showDashPage('pageQuiz')">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="brain" style="width:32px;height:32px"></i>
+            </div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="daily_quiz">Daily Quiz</p>
+            <p class="text-muted text-xs" data-i18n="qs_10">10 Qs · Earn coins!</p>
+          </div>
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="showView('followView')">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="heart" style="width:32px;height:32px"></i>
+            </div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="follow_earn">Follow &amp; Earn</p>
+            <p class="text-muted text-xs" data-i18n="social_rewards">Social rewards</p>
+          </div>
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="showView('winnersView')">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="medal" style="width:32px;height:32px"></i>
+            </div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="winners">Winners</p>
+            <p class="text-muted text-xs" data-i18n="today_results">Today's results</p>
+          </div>
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="openBuyTiersDialog()">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="shopping-cart"
+                style="width:32px;height:32px"></i></div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="buy_tiers">Buy More Tiers</p>
+            <p class="text-muted text-xs" data-i18n="advance_faster">Advance faster with new tiers</p>
+          </div>
+          <div class="card" style="padding:16px;cursor:pointer;text-align:center" onclick="showView('videosView')">
+            <div style="font-size:2rem;margin-bottom:6px"><i data-lucide="play-circle"
+                style="width:32px;height:32px"></i></div>
+            <p style="font-weight:700;font-size:.9rem" data-i18n="tutorial_videos">Tutorial Videos</p>
+            <p class="text-muted text-xs" data-i18n="learn_earn">Learn & earn!</p>
+          </div>
+        </div>
+
+        <!-- DAY GRID -->
+        <h3 class="section-heading" style="font-size:1rem;margin-bottom:10px" data-i18n="progress_31">31-Day Progress
+        </h3>
+        <div class="grid-7 mb-4" id="homeGrid" style="margin-bottom:14px"></div>
+
+        <!-- BANNER AD SPACE 2 -->
+        <div class="banner-ad" style="margin-bottom:14px">
+          <span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored Content</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── TASKS PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageTasks" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> <span data-i18n="back">Back</span></button>
+        </div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <!-- Tasks/Quiz tab row -->
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <button class="btn btn-blue btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageTasks')"><i
+              data-lucide="clipboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
+              Tasks</span></button>
+          <button class="btn btn-outline btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageQuiz')"><i
+              data-lucide="brain" style="width:14px;height:14px"></i> <span data-i18n="daily_quiz">Daily
+              Quiz</span></button>
+        </div>
+        <h2 class="section-heading"><span data-i18n="today_tasks">Today's Tasks</span> <i data-lucide="list-checks"
+            style="width:20px;height:20px"></i></h2>
+        <div id="tasksList"></div>
+        <h3 class="section-heading" style="font-size:1rem;margin-top:20px;margin-bottom:10px" data-i18n="progress_31">
+          31-Day Calendar</h3>
+        <div class="grid-7" id="dayGrid"></div>
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── TIERS PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageTiers" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <h2 class="section-heading" data-i18n="tier_system">Tier System <i data-lucide="layers"
+            style="width:20px;height:20px"></i></h2>
+        <div class="card mb-4" style="margin-bottom:16px">
+          <div class="card-content" style="padding:16px;text-align:center">
+            <p class="card-title" style="margin-bottom:8px" data-i18n="current_tier">Your Current Tier</p>
+            <div
+              style="font-family:'Poppins',sans-serif;font-size:2.5rem;font-weight:800;color:#00e676;margin-bottom:4px">
+              Tier <span id="currentTierNum">31</span></div>
+            <p class="text-muted text-xs" style="margin-bottom:4px" data-i18n="queue_pos">Position in queue: <span
+                style="color:#fff;font-weight:700" id="currentQueuePos">#1</span></p>
+            <p class="text-muted text-sm">Pool members: <span id="currentTierMembers"
+                style="color:#fff;font-weight:700">1</span></p>
+            <p class="text-muted text-sm" style="margin-top:8px">Your seats: <span id="tierSeatsOwned"
+                style="color:#fff;font-weight:700">1</span></p>
+            <div class="progress-track" style="height:6px;margin:12px 0">
+              <div class="progress-fill" id="tierProgress" style="width:10%"></div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+              <span class="badge badge-pending">⏳ Payout: Pending</span>
+            </div>
+            <button class="btn btn-outline btn-full btn-sm" style="margin-top:12px"
+              onclick="showMyTierClaimInfo()">Claim / View My Tiers</button>
+          </div>
+        </div>
+        <div class="card mb-4" style="margin-bottom:16px">
+          <div class="card-content" style="padding:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px;text-align:center">
+                <p class="text-xs text-muted" style="margin-bottom:8px">Tiers Purchased</p>
+                <div style="font-weight:800;font-size:1.3rem" id="tierPurchasedCount">0 tiers</div>
+              </div>
+              <div
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px;text-align:center">
+                <p class="text-xs text-muted" style="margin-bottom:8px">Tiers Claimed</p>
+                <div style="font-weight:800;font-size:1.3rem" id="tierClaimedCount">0 claimed</div>
+              </div>
+            </div>
+            <div
+              style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px;text-align:center;margin-top:12px">
+              <p class="text-xs text-muted" style="margin-bottom:8px">Total Investment</p>
+              <div style="font-weight:800;font-size:1.3rem" id="tierInvestment">₹0</div>
+            </div>
+          </div>
+        </div>
+        <p class="text-sm text-muted" style="margin-bottom:12px;line-height:1.6">Tiers are auto-assigned in order (first
+          come, first served). Tier 31 is the top tier. Your position advances as more users join. Payouts are verified
+          by admin before coins are credited.</p>
+        <div id="tiersList"></div>
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── SPIN PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageSpin" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <h2 class="section-heading"><span data-i18n="spin_wheel">Spin Wheel</span> <i data-lucide="disc-3"
+            style="width:20px;height:20px"></i></h2>
+        <div
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:20px">
+          <div class="spin-wheel-wrapper">
+            <div class="spin-pointer"></div>
+            <canvas id="spinCanvas" width="280" height="280"></canvas>
+            <button class="spin-center-btn" onclick="doSpin('coins')" id="spinCenterBtn">
+              <span class="spin-center-text" data-i18n="spin_btn_center">SPIN</span>
+            </button>
+          </div>
+          <div class="spin-btn-row">
+            <button class="btn btn-blue btn-full" onclick="doSpin('coins')" id="spinBtn1">
+              <i data-lucide="ticket" style="width:18px;height:18px"></i> <span data-i18n="spin_wheel">Spin
+                Wheel</span><br><span style="font-size:.7rem;opacity:.7">Use 1 <span
+                  data-i18n="tickets">ticket</span></span>
+            </button>
+          </div>
+          <!-- Watch Ads row -->
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button class="btn btn-outline btn-full btn-sm" onclick="watchAdForSpin()" style="font-size:.78rem">📺 Watch
+              Ad → Get Spin Ticket</button>
+            <p class="text-xs text-muted text-center" style="margin-top:4px" id="adsRemaining">5/5 left today</p>
+          </div>
+        </div>
+        <div class="spin-info-row">
+          <div class="spin-token-box">🎟️ <span id="spinTickets">3</span> tickets <button class="btn btn-outline btn-sm"
+              onclick="buyTickets()" style="margin-left:6px;padding:4px 8px;font-size:.7rem">+</button></div>
+          <div class="spin-token-box" style="color:#FFD700"><span class="g-coin"></span> <span id="spinCoins">0</span>
+          </div>
+        </div>
+        <div style="margin-top:24px">
+          <!-- Live Badge & Timer (Same as Main Leaderboard) -->
+          <div
+            style="background:linear-gradient(135deg,rgba(68,138,255,0.12),rgba(156,39,176,0.08));border:1px solid rgba(68,138,255,0.25);border-radius:14px;padding:12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <p class="text-xs text-muted" data-i18n="reset_timer_msg">⏰ Resetting In</p>
+              <p style="font-weight:700;font-size:.85rem;color:#82b1ff" class="countdown-timer">05h 22m</p>
+            </div>
+            <span class="badge badge-blue">🔥 Live</span>
+          </div>
+
+          <h3 class="section-heading"
+            style="font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+            <span><span data-i18n="top_spinners">Top Spinners</span> <i data-lucide="rotate-cw" id="spinRefreshIcon"
+                onclick="this.classList.add('spinning'); renderSpinLeaderboard(); setTimeout(()=>this.classList.remove('spinning'), 1000)"
+                style="width:18px;height:18px;margin-left:8px;cursor:pointer;opacity:0.6;transition:all 0.3s"></i></span>
+          </h3>
+
+          <div class="card" id="spinLeaderboardList"></div>
+        </div>
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── REELS PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageReels" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <h2 class="section-heading"><span data-i18n="reels">Reels</span> <i data-lucide="video"
+            style="width:20px;height:20px"></i></h2>
+
+        <!-- Reels Container - YouTube Shorts Style -->
+        <div class="shorts-container" id="shortsContainer">
+          <!-- Short 1 -->
+          <div class="short-item">
+            <div class="short-video-container">
+              <video class="short-video" muted playsinline loop preload="metadata">
+                <source src="https://www.pexels.com/download/video/30703854/" type="video/mp4">
+              </video>
+            </div>
+            <div class="short-overlay">
+              <!-- Bottom Caption -->
+              <div class="short-caption">
+                <div class="short-text">
+                  Welcome to Grow31! Start your 31-day challenge today! 💪 #Grow31 #Challenge
+                </div>
+                <div class="short-music">
+                  <i data-lucide="music"></i>
+                  <span>Original Audio - Grow31</span>
+                </div>
+              </div>
+
+              <!-- Right Side Actions -->
+              <div class="short-actions">
+                <button class="action-btn like-btn" onclick="toggleLike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">1.2K</span>
+                </button>
+                <button class="action-btn comment-btn" onclick="showComments()">
+                  <i data-lucide="message-circle"></i>
+                  <span class="action-count">89</span>
+                </button>
+                <button class="action-btn share-btn" onclick="shareShort()">
+                  <i data-lucide="send"></i>
+                  <span class="action-count">23</span>
+                </button>
+                <button class="action-btn more-btn" onclick="showMoreOptions()">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+
+              <!-- User Info -->
+              <div class="short-user">
+                <div class="user-avatar">🎬</div>
+                <div class="user-info">
+                  <span class="username">@grow31</span>
+                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Short 2 -->
+          <div class="short-item">
+            <div class="short-video-container">
+              <video class="short-video" muted playsinline loop preload="metadata">
+                <source src="https://www.pexels.com/download/video/30706004/" type="video/mp4">
+              </video>
+            </div>
+            <div class="short-overlay">
+              <div class="short-caption">
+                <div class="short-text">
+                  Complete daily tasks and earn coins! Spin the wheel for bonus rewards! 🎯 #DailyTasks
+                </div>
+                <div class="short-music">
+                  <i data-lucide="music"></i>
+                  <span>Epic Motivation - Grow31</span>
+                </div>
+              </div>
+              <div class="short-actions">
+                <button class="action-btn like-btn" onclick="toggleLike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">856</span>
+                </button>
+                <button class="action-btn comment-btn" onclick="showComments()">
+                  <i data-lucide="message-circle"></i>
+                  <span class="action-count">42</span>
+                </button>
+                <button class="action-btn share-btn" onclick="shareShort()">
+                  <i data-lucide="send"></i>
+                  <span class="action-count">15</span>
+                </button>
+                <button class="action-btn more-btn" onclick="showMoreOptions()">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+              <div class="short-user">
+                <div class="user-avatar">🏆</div>
+                <div class="user-info">
+                  <span class="username">@grow31_official</span>
+                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Short 3 -->
+          <div class="short-item">
+            <div class="short-video-container">
+              <video class="short-video" muted playsinline loop preload="metadata">
+                <source src="https://www.pexels.com/download/video/35174752/" type="video/mp4">
+              </video>
+            </div>
+            <div class="short-overlay">
+              <div class="short-caption">
+                <div class="short-text">
+                  Join our community! Invite friends and earn referral bonuses! 🌱 #Community
+                </div>
+                <div class="short-music">
+                  <i data-lucide="music"></i>
+                  <span>Community Vibes - Grow31</span>
+                </div>
+              </div>
+              <div class="short-actions">
+                <button class="action-btn like-btn" onclick="toggleLike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">2.1K</span>
+                </button>
+                <button class="action-btn comment-btn" onclick="showComments()">
+                  <i data-lucide="message-circle"></i>
+                  <span class="action-count">156</span>
+                </button>
+                <button class="action-btn share-btn" onclick="shareShort()">
+                  <i data-lucide="send"></i>
+                  <span class="action-count">78</span>
+                </button>
+                <button class="action-btn more-btn" onclick="showMoreOptions()">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+              <div class="short-user">
+                <div class="user-avatar">🚀</div>
+                <div class="user-info">
+                  <span class="username">@grow31_team</span>
+                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Short 4 -->
+          <div class="short-item">
+            <div class="short-video-container">
+              <video class="short-video" muted playsinline loop preload="metadata">
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                  type="video/mp4">
+              </video>
+            </div>
+            <div class="short-overlay">
+              <div class="short-caption">
+                <div class="short-text">
+                  Success story! 31 days of consistency paid off! 🏆 #SuccessStory
+                </div>
+                <div class="short-music">
+                  <i data-lucide="music"></i>
+                  <span>Victory Song - Grow31</span>
+                </div>
+              </div>
+              <div class="short-actions">
+                <button class="action-btn like-btn" onclick="toggleLike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">3.4K</span>
+                </button>
+                <button class="action-btn comment-btn" onclick="showComments()">
+                  <i data-lucide="message-circle"></i>
+                  <span class="action-count">234</span>
+                </button>
+                <button class="action-btn share-btn" onclick="shareShort()">
+                  <i data-lucide="send"></i>
+                  <span class="action-count">145</span>
+                </button>
+                <button class="action-btn more-btn" onclick="showMoreOptions()">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+              <div class="short-user">
+                <div class="user-avatar">⭐</div>
+                <div class="user-info">
+                  <span class="username">@grow31_winner</span>
+                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Short 5 -->
+          <div class="short-item">
+            <div class="short-video-container">
+              <video class="short-video" muted playsinline loop preload="metadata">
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+                  type="video/mp4">
+              </video>
+            </div>
+            <div class="short-overlay">
+              <div class="short-caption">
+                <div class="short-text">
+                  Fun challenge! Can you complete all tasks in one day? 🎮 #FunChallenge
+                </div>
+                <div class="short-music">
+                  <i data-lucide="music"></i>
+                  <span>Fun Beats - Grow31</span>
+                </div>
+              </div>
+              <div class="short-actions">
+                <button class="action-btn like-btn" onclick="toggleLike(this)">
+                  <i data-lucide="heart"></i>
+                  <span class="action-count">1.8K</span>
+                </button>
+                <button class="action-btn comment-btn" onclick="showComments()">
+                  <i data-lucide="message-circle"></i>
+                  <span class="action-count">98</span>
+                </button>
+                <button class="action-btn share-btn" onclick="shareShort()">
+                  <i data-lucide="send"></i>
+                  <span class="action-count">67</span>
+                </button>
+                <button class="action-btn more-btn" onclick="showMoreOptions()">
+                  <i data-lucide="more-horizontal"></i>
+                </button>
+              </div>
+              <div class="short-user">
+                <div class="user-avatar">🎪</div>
+                <div class="user-info">
+                  <span class="username">@grow31_fun</span>
+                  <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── LEADERBOARD PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageLeader" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <h2 class="section-heading">Leaderboard <i data-lucide="trophy" style="width:20px;height:20px"></i></h2>
+
+        <!-- Countdown Timer -->
+        <div
+          style="background:linear-gradient(135deg,rgba(68,138,255,0.12),rgba(156,39,176,0.08));border:1px solid rgba(68,138,255,0.25);border-radius:14px;padding:12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <p class="text-xs text-muted">⏰ Competition Resets In</p>
+            <p style="font-weight:700;font-size:.85rem;color:#82b1ff" class="countdown-timer">—</p>
+          </div>
+          <span class="badge badge-blue">🔥 Live</span>
+        </div>
+
+        <!-- Competition Schedule -->
+        <div class="card mb-4" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">🏅 Daily Competition Schedule</div>
+          </div>
+          <div style="padding:0 16px 16px">
+            <div class="schedule-row">
+              <div class="schedule-days">Days 1–10</div>
+              <div class="schedule-wins">
+                <span class="schedule-win-badge">1 Referral Win</span>
+                <span class="schedule-win-badge pool">1 Pool Win</span>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div class="schedule-days">Days 11–15</div>
+              <div class="schedule-wins">
+                <span class="schedule-win-badge">3 Referral Wins</span>
+                <span class="schedule-win-badge pool">2 Pool Wins</span>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div class="schedule-days">Days 16–20</div>
+              <div class="schedule-wins">
+                <span class="schedule-win-badge">5 Referral Wins</span>
+                <span class="schedule-win-badge pool">3 Pool Wins</span>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div class="schedule-days">Days 21–25</div>
+              <div class="schedule-wins">
+                <span class="schedule-win-badge">7 Referral Wins</span>
+                <span class="schedule-win-badge pool">5 Pool Wins</span>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div class="schedule-days">Days 25–31</div>
+              <div class="schedule-wins">
+                <span class="schedule-win-badge">10 Referral Wins</span>
+                <span class="schedule-win-badge pool">10 Pool Wins</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Leaderboard list -->
+        <div class="card" id="leaderboardList"></div>
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+      </div>
+
+      <!-- ─── QUIZ PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageQuiz" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> <span data-i18n="back">Back</span></button>
+        </div>
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <!-- Tasks/Quiz tab row -->
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <button class="btn btn-outline btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageTasks')"><i
+              data-lucide="clipboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
+              Tasks</span></button>
+          <button class="btn btn-blue btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageQuiz')"><i
+              data-lucide="brain" style="width:14px;height:14px"></i> <span data-i18n="daily_quiz">Daily
+              Quiz</span></button>
+        </div>
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+          <h2 class="section-heading" style="margin-bottom:0" data-i18n="daily_quiz">Daily Quiz 🧠</h2>
+          <span class="badge badge-yellow"
+            style="color:#FFD700;background:rgba(212,170,0,0.18);border-color:rgba(255,215,0,0.4)">+5 <span
+              class="g-coin"></span> per
+            correct</span>
+        </div>
+        <!-- Quiz progress bar -->
+        <div
+          style="background:rgba(255,255,255,0.07);border-radius:9999px;overflow:hidden;height:6px;margin-bottom:20px;border:1px solid rgba(255,255,255,0.08)">
+          <div id="quizProgressBar"
+            style="height:100%;background:linear-gradient(90deg,#448aff,#FFD700);border-radius:9999px;transition:width .4s ease;width:0%">
+          </div>
+        </div>
+        <div id="quizContainer"></div>
+        <div id="quizResult" style="display:none;text-align:center;padding:24px 0">
+          <div style="font-size:3.5rem;margin-bottom:12px" id="quizResultEmoji">🎉</div>
+          <h3 style="font-family:'Poppins',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px"
+            id="quizResultTitle">Quiz Done!</h3>
+          <p class="text-muted" id="quizResultSub" style="margin-bottom:20px">Great effort!</p>
+          <div
+            style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:16px;margin-bottom:20px">
+            <p class="text-xs text-muted" style="margin-bottom:4px">Coins Earned</p>
+            <p style="font-family:'Poppins',sans-serif;font-size:2rem;font-weight:800;color:#FFD700"
+              id="quizCoinsEarned"><span class="g-coin"></span> 0</p>
+          </div>
+          <button class="btn btn-white btn-full btn-lg" onclick="resetQuiz()">🔄 Try Again Tomorrow</button>
+        </div>
+      </div>
+
+      <!-- ─── MORE PAGE ─── -->
+      <div class="page-content page-content-ranked" id="pageMore" style="display:none">
+        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
+              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
+        <!-- AD -->
+        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
+            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <!-- Profile preview -->
+        <div
+          style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(68,138,255,0.12),rgba(138,43,226,0.08));border:1px solid rgba(68,138,255,0.2);border-radius:18px;padding:18px;margin-bottom:16px">
+          <div class="avatar av-user" id="moreAvatar"
+            style="width:54px;height:54px;font-size:1.6rem;flex-shrink:0;cursor:pointer" onclick="pickEmoji()">🧑</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+              <p style="font-weight:700;font-size:1.05rem;font-family:'Poppins',sans-serif" id="moreUsername">User</p>
+              <button class="btn btn-outline btn-sm" onclick="openUsernameEditDialog()"
+                style="padding:2px 8px;font-size:.7rem"><i data-lucide="edit-3"
+                  style="width:12px;height:12px"></i></button>
+              <button class="btn btn-outline btn-sm" onclick="triggerPhotoUpload()"
+                style="padding:2px 8px;font-size:.7rem"><i data-lucide="camera"
+                  style="width:12px;height:12px"></i></button>
+            </div>
+            <p class="text-muted text-xs" id="morePhone">+91 xxxxxxxx</p>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+              <span class="badge badge-yellow"
+                style="color:#FFD700;background:rgba(212,170,0,0.18);border-color:rgba(255,215,0,0.4)"><span
+                  class="g-coin"></span> <span id="moreCoins">0</span></span>
+              <span class="badge badge-blue">Tier <span id="moreTier">31</span></span>
+            </div>
+          </div>
+        </div>
+        <!-- Referral code display -->
+        <div class="card" style="margin-bottom:12px;background:rgba(68,138,255,0.08);border-color:rgba(68,138,255,0.2)">
+          <div class="card-content" style="padding:14px 16px">
+            <p class="text-xs text-muted" style="margin-bottom:4px" data-i18n="your_referral_link">Your Referral Link
+            </p>
+            <p style="font-weight:700;font-size:.88rem;color:#82b1ff;word-break:break-all" id="moreRefLink">Grow31/—</p>
+          </div>
+        </div>
+        <!-- Social links -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="list-item" style="cursor:pointer" onclick="showDashPage('pageTiers')">
+            <span style="font-size:1.2rem;color:#ce93d8"><i data-lucide="layers"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="my_tiers">My Tiers</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showDashPage('pageTasks')">
+            <span style="font-size:1.2rem;color:#448aff"><i data-lucide="clipboard-list"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="nav_tasks">My Tasks</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showView('videosView')">
+            <span style="font-size:1.2rem;color:#ff5252"><i data-lucide="video"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="tutorial_videos">Tutorial Videos</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showDashPage('pageQuiz')">
+            <span style="font-size:1.2rem;color:#f5c518"><i data-lucide="brain"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="daily_quiz">Daily Quiz</span>
+            <span class="badge badge-green">+5 <span class="g-coin"></span>/Q</span>
+            <span class="text-muted" style="margin-left:8px"><i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="openReferralDialog()">
+            <span style="font-size:1.2rem;color:#00e676"><i data-lucide="users"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="nav_invite">My Referrals</span>
+            <span class="badge badge-green" id="moreRefCount">0</span>
+            <span class="text-muted" style="margin-left:8px"><i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="openPerksView()">
+            <span style="font-size:1.2rem;color:#ce93d8"><i data-lucide="disc-3"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="perks_rewards">Perks &amp; Rewards</span>
+            <span class="badge badge-purple">New</span>
+            <span class="text-muted" style="margin-left:8px"><i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showView('winnersView')">
+            <span style="font-size:1.2rem;color:#f5c518"><i data-lucide="medal"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="winners_tab">Winners &amp; Updates</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="list-item" style="cursor:pointer" onclick="openDrawer()">
+            <span style="font-size:1.2rem;color:#90caf9"><i data-lucide="settings"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="settings">Settings</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="openDrawer('lang')">
+            <span style="font-size:1.2rem;color:#80deea"><i data-lucide="languages"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="language">Language</span>
+            <span class="text-muted" id="moreLang">English <i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="openDrawer('country')">
+            <span style="font-size:1.2rem;color:#c5e1a5"><i data-lucide="globe"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="country">Country</span>
+            <span class="text-muted" id="moreCountry">🇮🇳 India <i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="list-item" style="cursor:pointer" onclick="showView('aiChatView')">
+            <span style="font-size:1.2rem;color:#448aff"><i data-lucide="bot"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="ai_assistant">AI Assistant</span>
+            <span class="badge badge-blue">New</span>
+            <span class="text-muted" style="margin-left:8px"><i data-lucide="chevron-right"
+                style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showView('helpView')">
+            <span style="font-size:1.2rem;color:#ffca28"><i data-lucide="help-circle"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="help_support">Help &amp; Support</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showView('contactView')">
+            <span style="font-size:1.2rem;color:#ff7043"><i data-lucide="phone"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="contact_us">Contact Us</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+          <div class="list-item" style="cursor:pointer" onclick="showView('termsView2')">
+            <span style="font-size:1.2rem;color:#b0bec5"><i data-lucide="file-text"></i></span>
+            <span style="flex:1;font-weight:500" data-i18n="terms_cond">Terms &amp; Conditions</span>
+            <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
+          </div>
+        </div>
+        <!-- AD 2 -->
+        <div class="banner-ad" style="margin-bottom:12px"><span style="font-size:1.2rem">🎯</span>
+          <div style="text-align:left">
+            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
+            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
+          </div>
+          <div class="banner-ad-label">AD</div>
+        </div>
+        <button class="btn btn-danger btn-full" onclick="doLogout()" style="margin-top:8px"><i data-lucide="log-out"
+            style="width:18px;height:18px"></i> <span data-i18n="logout">Logout</span></button>
+        <p class="text-xs text-muted text-center" style="margin-top:16px;opacity:.4">Grow31 v1.0 · <a
+            href="/cdn-cgi/l/email-protection#ef9c9a9f9f809d9baf889d8098dcdec18c8082" style="color:inherit"><span
+              class="__cf_email__"
+              data-cfemail="b9caccc9c9d6cbcdf9decbd6ce8a8897dad6d4">[email&#160;protected]</span></a></p>
+        <p class="text-xs text-muted text-center" style="margin-top:4px;opacity:.3">
+          <span onclick="adminShortcut()" style="cursor:pointer">·</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" id="navHome" onclick="showDashPage('pageHome')">
+        <span class="nav-icon"><i data-lucide="home"></i></span><span data-i18n="nav_home">Home</span>
+      </button>
+      <button class="nav-btn" id="navTasks" onclick="showDashPage('pageTasks')">
+        <span class="nav-icon"><i data-lucide="clipboard-list"></i></span><span data-i18n="nav_tasks">Tasks</span>
+      </button>
+      <button class="nav-btn invite-active" id="navInvite" onclick="openReferralDialog()">
+        <div class="nav-icon-wrap"><i data-lucide="users"></i></div>
+        <span data-i18n="nav_invite">Invite</span>
+      </button>
+      <button class="nav-btn" id="navSpin" onclick="showDashPage('pageSpin')">
+        <span class="nav-icon"><i data-lucide="disc-3"></i></span><span data-i18n="nav_spin">Spin</span>
+      </button>
+      <button class="nav-btn" id="navReels" onclick="showDashPage('pageReels')">
+        <span class="nav-icon"><i data-lucide="video"></i></span><span data-i18n="nav_reels">Reels</span>
+      </button>
+      <button class="nav-btn" id="navMore" onclick="showDashPage('pageMore')">
+        <span class="nav-icon"><i data-lucide="layout-grid"></i></span><span data-i18n="nav_more">More</span>
+      </button>
+    </div>
+
+    <!-- STICKY RANK BAR (always visible) -->
+    <div class="sticky-rank-bar" id="stickyRankBar" onclick="showDashPage('pageLeader')" style="cursor:pointer"
+      title="Open leaderboard">
+      <div class="rank-bar-user">
+        <div class="avatar av-user" id="rankBarAvatar" style="width:32px;height:32px;font-size:.95rem;flex-shrink:0">🧑
+        </div>
+        <div class="rank-bar-info">
+          <div class="rank-bar-name" id="rankBarName">User</div>
+          <div class="rank-bar-sub"><span data-i18n="tier">Tier</span> <span id="rankBarTier">31</span> · <span
+              data-i18n="day">Day</span> <span id="rankBarDay">1</span></div>
+        </div>
+      </div>
+      <div class="rank-bar-stats">
+        <div class="rank-badge-pill"><i data-lucide="trophy" style="width:14px;height:14px;margin-right:4px"></i> <span
+            id="rankBarRank">#–</span></div>
+        <div class="rank-coins-pill"><span class="g-coin"></span> <span id="rankBarCoins">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- VIDEO TUTORIALS VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="videosView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="tutorial_videos">Tutorial Videos</div>
+      <div style="width:60px"></div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading"><span data-i18n="learn_how_grow31">Learn How to Grow31</span> <i
+          data-lucide="play-circle" style="width:20px;height:20px"></i>
+      </h2>
+      <p class="text-muted text-sm" style="margin-bottom:20px;line-height:1.6" data-i18n="watch_tutorials_desc">Watch
+        these tutorial videos to understand
+        how Grow31 works, earn coins, climb the leaderboard, and maximize your rewards!</p>
+
+      <!-- Video 1: Getting Started -->
+      <div class="card" style="margin-bottom:14px">
+        <div
+          style="background:linear-gradient(135deg,rgba(68,138,255,0.15),rgba(206,147,216,0.1));border-radius:12px;overflow:hidden;position:relative;height:160px;margin-bottom:12px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <a href="https://www.youtube.com/embed/Jfr7kH-E8OM?si=Jfr7kH-E8OM" target="_blank"
+              style="background:rgba(255,82,82,0.9);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;text-decoration:none;transition:all .2s">▶</a>
+          </div>
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23050510' width='320' height='180'/%3E%3C/svg%3E"
+            style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="padding:0 16px 14px">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:3px" data-i18n="getting_started_title">Getting
+            Started with Grow31</p>
+          <p class="text-muted text-xs" style="margin-bottom:8px"><span data-i18n="duration">Duration</span>: 3:45 ·
+            <span data-i18n="level">Level</span>: <span data-i18n="beginner">Beginner</span>
+          </p>
+          <p class="text-muted text-sm" style="line-height:1.5" data-i18n="getting_started_desc">Learn how to sign up,
+            complete your profile, join the
+            31-day challenge, and make your first payment.</p>
+          <a href="https://www.youtube.com/@grow31-u3s" target="_blank" class="btn btn-blue btn-sm"
+            style="width:100%;margin-top:10px;text-align:center" data-i18n="watch_video_btn">▶ Watch Video</a>
+        </div>
+      </div>
+
+      <!-- Video 2: Earning Coins -->
+      <div class="card" style="margin-bottom:14px">
+        <div
+          style="background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(68,138,255,0.1));border-radius:12px;overflow:hidden;position:relative;height:160px;margin-bottom:12px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <a href="https://www.youtube.com/@grow31-u3s" target="_blank"
+              style="background:rgba(255,82,82,0.9);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;text-decoration:none;transition:all .2s">▶</a>
+          </div>
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23050510' width='320' height='180'/%3E%3C/svg%3E"
+            style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="padding:0 16px 14px">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:3px">Complete Daily Tasks & Earn Coins</p>
+          <p class="text-muted text-xs" style="margin-bottom:8px">Duration: 4:20 · Level: Beginner</p>
+          <p class="text-muted text-sm" style="line-height:1.5">Discover all the ways to earn coins: daily tasks, quiz,
+            spin wheel, referrals, and follow rewards!</p>
+          <a href="https://www.youtube.com/@grow31-u3s" target="_blank" class="btn btn-blue btn-sm"
+            style="width:100%;margin-top:10px;text-align:center">▶ Watch Video</a>
+        </div>
+      </div>
+
+      <!-- Video 3: Tier System -->
+      <div class="card" style="margin-bottom:14px">
+        <div
+          style="background:linear-gradient(135deg,rgba(245,197,24,0.15),rgba(255,112,67,0.1));border-radius:12px;overflow:hidden;position:relative;height:160px;margin-bottom:12px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <a href="https://www.youtube.com/@grow31-u3s" target="_blank"
+              style="background:rgba(255,82,82,0.9);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;text-decoration:none;transition:all .2s">▶</a>
+          </div>
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23050510' width='320' height='180'/%3E%3C/svg%3E"
+            style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="padding:0 16px 14px">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:3px">Understanding the Tier System</p>
+          <p class="text-muted text-xs" style="margin-bottom:8px">Duration: 5:10 · Level: Intermediate</p>
+          <p class="text-muted text-sm" style="line-height:1.5">How tiers work, pool sizes, upgrades, and how to claim
+            your rewards as you advance through the tiers!</p>
+          <a href="https://www.youtube.com/@grow31-u3s" target="_blank" class="btn btn-blue btn-sm"
+            style="width:100%;margin-top:10px;text-align:center">▶ Watch Video</a>
+        </div>
+      </div>
+
+      <!-- Video 4: Referral Strategy -->
+      <div class="card" style="margin-bottom:14px">
+        <div
+          style="background:linear-gradient(135deg,rgba(138,43,226,0.15),rgba(68,138,255,0.1));border-radius:12px;overflow:hidden;position:relative;height:160px;margin-bottom:12px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <a href="https://www.youtube.com/@grow31-u3s" target="_blank"
+              style="background:rgba(255,82,82,0.9);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;text-decoration:none;transition:all .2s">▶</a>
+          </div>
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23050510' width='320' height='180'/%3E%3C/svg%3E"
+            style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="padding:0 16px 14px">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:3px">Referral Strategies & Winning Tips</p>
+          <p class="text-muted text-xs" style="margin-bottom:8px">Duration: 5:45 · Level: Intermediate</p>
+          <p class="text-muted text-sm" style="line-height:1.5">Master the referral system, earn commissions, and use
+            strategies to win big rewards and climb the leaderboard!</p>
+          <a href="https://www.youtube.com/@grow31-u3s" target="_blank" class="btn btn-blue btn-sm"
+            style="width:100%;margin-top:10px;text-align:center">▶ Watch Video</a>
+        </div>
+      </div>
+
+      <!-- Video 5: Advanced Tips -->
+      <div class="card" style="margin-bottom:20px">
+        <div
+          style="background:linear-gradient(135deg,rgba(255,112,67,0.15),rgba(245,197,24,0.1));border-radius:12px;overflow:hidden;position:relative;height:160px;margin-bottom:12px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <a href="https://www.youtube.com/@grow31-u3s" target="_blank"
+              style="background:rgba(255,82,82,0.9);color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;text-decoration:none;transition:all .2s">▶</a>
+          </div>
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 180'%3E%3Crect fill='%23050510' width='320' height='180'/%3E%3C/svg%3E"
+            style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="padding:0 16px 14px">
+          <p style="font-weight:700;font-size:.95rem;margin-bottom:3px">Pro Tips: Maximize Your Earnings</p>
+          <p class="text-muted text-xs" style="margin-bottom:8px">Duration: 6:30 · Level: Advanced</p>
+          <p class="text-muted text-sm" style="line-height:1.5">Advanced strategies to maximize earnings, daily streaks,
+            optimal referral timing, and prize predictions!</p>
+          <a href="https://www.youtube.com/@grow31-u3s" target="_blank" class="btn btn-blue btn-sm"
+            style="width:100%;margin-top:10px;text-align:center">▶ Watch Video</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- FOLLOW & EARN VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="followView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="follow_earn">Follow &amp; Earn</div>
+      <div class="flex items-center gap-2">
+        <div class="coins-pill" style="cursor:pointer" onclick="openWalletDialog()"><span class="g-coin"></span> <span
+            id="followCoins">0</span></div>
+        <button class="dots-btn" onclick="openDrawer()"><i data-lucide="menu"
+            style="width:20px;height:20px"></i></button>
+      </div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading" data-i18n="follow_earn">Follow &amp; Earn <span class="g-coin"></span></h2>
+      <p class="text-muted text-sm" style="margin-bottom:16px;line-height:1.6" data-i18n="follow_desc">Follow Grow31 on
+        social media to earn
+        coins and get the latest updates!</p>
+
+      <!-- Daily check-in -->
+      <div class="card mt-4"
+        style="margin-bottom:20px;background:linear-gradient(135deg,rgba(0,230,118,0.15),rgba(68,138,255,0.12));border:1px solid rgba(0,230,118,0.3);backdrop-filter:blur(10px);position:relative;overflow:hidden">
+        <div
+          style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(0,230,118,0.1),transparent);border-radius:50%;transform:translate(20px,-20px);pointer-events:none">
+        </div>
+        <div class="card-content"
+          style="text-align:center;padding:20px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
+          <div
+            style="font-size:2rem;margin-bottom:12px;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:rgba(0,230,118,0.15);border-radius:12px">
+            📅</div>
+          <p style="font-weight:700;font-size:.98rem;margin-bottom:3px;letter-spacing:.3px" data-i18n="daily_checkin">
+            Daily Check-In</p>
+          <p class="text-muted text-sm" style="margin-bottom:14px;line-height:1.4" data-i18n="claim_bonus">Claim your
+            daily bonus to keep your
+            streak alive! 🔥</p>
+          <button class="btn btn-full" id="followCheckInBtn" onclick="doCheckIn()"
+            style="background:linear-gradient(135deg,#00e676,#1de9b6);color:#000;font-weight:700;border:none;box-shadow:0 4px 16px rgba(0,230,118,0.3);transition:all .3s ease"
+            data-i18n="checkin_btn">✓
+            Check In Today (+5 <span class="g-coin"></span>)</button>
+        </div>
+      </div>
+
+      <!-- Follow Cards -->
+      <!-- Instagram -->
+      <div class="follow-card">
+        <div class="follow-icon"
+          style="background:rgba(225,48,108,0.15);border:1px solid rgba(225,48,108,0.2);color:#e91e63">
+          <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:currentColor">
+            <path
+              d="M17 2H7C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5zm3 15c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3V7c0-1.65 1.35-3 3-3h10c1.65 0 3 1.35 3 3v10zm-8-9.5A4.5 4.5 0 1 0 16.5 12 4.51 4.51 0 0 0 12 7.5zm0 7.5a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm4.75-8.75a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 16.75 6.25z" />
+          </svg>
+        </div>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:.95rem">Follow on Instagram</p>
+          <p class="text-muted text-xs">@_grow31 · Behind the scenes &amp; winners</p>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+            <p class="coins-reward" style="margin:0">+50 <span class="g-coin"></span></p>
+            <span
+              style="font-size:.65rem;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.07);border-radius:4px;padding:2px 5px">Max:
+              50 coins · ~10 min</span>
+          </div>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="followSocial('instagram',50,this)">Follow</button>
+      </div>
+      <!-- YouTube -->
+      <div class="follow-card">
+        <div class="follow-icon" style="background:rgba(255,0,0,0.12);border:1px solid rgba(255,0,0,0.2);color:#ff5252">
+          <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:currentColor">
+            <path
+              d="M21.8 8.4c-.2-.8-.7-1.4-1.4-1.8C18.6 6 12 6 12 6s-6.6 0-8.4.6c-.7.4-1.2 1-1.4 1.8-.3 1.3-.3 4-.3 4s0 2.7.3 4c.2.8.7 1.4 1.4 1.8 1.8.6 8.4.6 8.4.6s6.6 0 8.4-.6c.7-.4 1.2-1 1.4-1.8.3-1.3.3-4 .3-4s0-2.7-.3-4zM10 15.5V8.5l6 3.5-6 3.5z" />
+          </svg>
+        </div>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:.95rem">Subscribe on YouTube</p>
+          <p class="text-muted text-xs">@grow31-u3s · Tutorial videos &amp; livestreams</p>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+            <p class="coins-reward" style="margin:0">+50 <span class="g-coin"></span></p>
+            <span
+              style="font-size:.65rem;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.07);border-radius:4px;padding:2px 5px">Max:
+              50 coins · ~10 min</span>
+          </div>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="followSocial('youtube',50,this)">Subscribe</button>
+      </div>
+      <!-- Telegram -->
+      <div class="follow-card">
+        <div class="follow-icon"
+          style="background:rgba(0,119,181,0.15);border:1px solid rgba(0,119,181,0.2);color:#0088cc">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <circle cx="16" cy="16" r="14" fill="url(#paint0_linear_87_7225)"></circle>
+              <path
+                d="M22.9866 10.2088C23.1112 9.40332 22.3454 8.76755 21.6292 9.082L7.36482 15.3448C6.85123 15.5703 6.8888 16.3483 7.42147 16.5179L10.3631 17.4547C10.9246 17.6335 11.5325 17.541 12.0228 17.2023L18.655 12.6203C18.855 12.4821 19.073 12.7665 18.9021 12.9426L14.1281 17.8646C13.665 18.3421 13.7569 19.1512 14.314 19.5005L19.659 22.8523C20.2585 23.2282 21.0297 22.8506 21.1418 22.1261L22.9866 10.2088Z"
+                fill="white"></path>
+              <defs>
+                <linearGradient id="paint0_linear_87_7225" x1="16" y1="2" x2="16" y2="30"
+                  gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#37BBFE"></stop>
+                  <stop offset="1" stop-color="#007DBB"></stop>
+                </linearGradient>
+              </defs>
+            </g>
+          </svg>
+        </div>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:.95rem">Join Telegram Channel</p>
+          <p class="text-muted text-xs">Grow31 Official · Updates &amp; giveaways</p>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+            <p class="coins-reward" style="margin:0">+50 <span class="g-coin"></span></p>
+            <span
+              style="font-size:.65rem;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.07);border-radius:4px;padding:2px 5px">Max:
+              50 coins · ~10 min</span>
+          </div>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="followSocial('telegram',50,this)">Join</button>
+      </div>
+      <!-- WhatsApp -->
+      <div class="follow-card">
+        <div class="follow-icon"
+          style="background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.2);color:#25d366">
+          <svg width="100px" height="100px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
+                fill="#BFC8D0"></path>
+              <path
+                d="M28 16C28 22.6274 22.6274 28 16 28C13.4722 28 11.1269 27.2184 9.19266 25.8837L5.09091 26.9091L6.16576 22.8784C4.80092 20.9307 4 18.5589 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16Z"
+                fill="url(#paint0_linear_87_7264)"></path>
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M16 30C23.732 30 30 23.732 30 16C30 8.26801 23.732 2 16 2C8.26801 2 2 8.26801 2 16C2 18.5109 2.661 20.8674 3.81847 22.905L2 30L9.31486 28.3038C11.3014 29.3854 13.5789 30 16 30ZM16 27.8462C22.5425 27.8462 27.8462 22.5425 27.8462 16C27.8462 9.45755 22.5425 4.15385 16 4.15385C9.45755 4.15385 4.15385 9.45755 4.15385 16C4.15385 18.5261 4.9445 20.8675 6.29184 22.7902L5.23077 26.7692L9.27993 25.7569C11.1894 27.0746 13.5046 27.8462 16 27.8462Z"
+                fill="white"></path>
+              <path
+                d="M12.5 9.49989C12.1672 8.83131 11.6565 8.8905 11.1407 8.8905C10.2188 8.8905 8.78125 9.99478 8.78125 12.05C8.78125 13.7343 9.52345 15.578 12.0244 18.3361C14.438 20.9979 17.6094 22.3748 20.2422 22.3279C22.875 22.2811 23.4167 20.0154 23.4167 19.2503C23.4167 18.9112 23.2062 18.742 23.0613 18.696C22.1641 18.2654 20.5093 17.4631 20.1328 17.3124C19.7563 17.1617 19.5597 17.3656 19.4375 17.4765C19.0961 17.8018 18.4193 18.7608 18.1875 18.9765C17.9558 19.1922 17.6103 19.083 17.4665 19.0015C16.9374 18.7892 15.5029 18.1511 14.3595 17.0426C12.9453 15.6718 12.8623 15.2001 12.5959 14.7803C12.3828 14.4444 12.5392 14.2384 12.6172 14.1483C12.9219 13.7968 13.3426 13.254 13.5313 12.9843C13.7199 12.7145 13.5702 12.305 13.4803 12.05C13.0938 10.953 12.7663 10.0347 12.5 9.49989Z"
+                fill="white"></path>
+              <defs>
+                <linearGradient id="paint0_linear_87_7264" x1="26.5" y1="7" x2="4" y2="28"
+                  gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#5BD066"></stop>
+                  <stop offset="1" stop-color="#27B43E"></stop>
+                </linearGradient>
+              </defs>
+            </g>
+          </svg>
+        </div>
+        <div style="flex:1">
+          <p style="font-weight:700;font-size:.95rem">Join WhatsApp Group</p>
+          <p class="text-muted text-xs">Daily tasks, reminders &amp; support</p>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+            <p class="coins-reward" style="margin:0">+50 <span class="g-coin"></span></p>
+            <span
+              style="font-size:.65rem;color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.07);border-radius:4px;padding:2px 5px">Max:
+              50 coins · ~10 min</span>
+          </div>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="followSocial('whatsapp',50,this)">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- WINNERS VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="winnersView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="winners">Winners</div>
+      <div class="coins-pill"><span class="g-coin"></span> <span id="winnersCoins">0</span></div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading"><span data-i18n="winners_tab">Winners &amp; Updates</span> <i data-lucide="medal"
+          style="width:20px;height:20px"></i></h2>
+
+      <!-- Countdown Timer -->
+      <div
+        style="background:linear-gradient(135deg,rgba(68,138,255,0.12),rgba(156,39,176,0.08));border:1px solid rgba(68,138,255,0.25);border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+        <p class="text-xs text-muted" style="margin-bottom:4px" data-i18n="next_results"><i data-lucide="clock"
+            style="width:12px;height:12px"></i> Next Results Announcement In</p>
+        <p style="font-family:'Poppins',sans-serif;font-size:1.4rem;font-weight:800;color:#82b1ff"
+          class="countdown-timer">—</p>
+        <p class="text-xs text-muted" style="margin-top:4px;opacity:.6" data-i18n="winners_ann">Winners announced at
+          midnight daily</p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-blue btn-sm" id="wTab1" onclick="switchWinnersTab('winners')"><i data-lucide="award"
+            style="width:14px;height:14px"></i> <span data-i18n="winners_tab">Winners</span></button>
+        <button class="btn btn-outline btn-sm" id="wTab2" onclick="switchWinnersTab('updates')"><i
+            data-lucide="megaphone" style="width:14px;height:14px"></i> <span
+            data-i18n="updates_tab">Updates</span></button>
+        <button class="btn btn-outline btn-sm" id="wTab3" onclick="switchWinnersTab('schedule')"><i
+            data-lucide="calendar" style="width:14px;height:14px"></i> <span
+            data-i18n="schedule_tab">Schedule</span></button>
+      </div>
+
+      <!-- Winners Tab -->
+      <div id="winnersTab">
+        <div id="dynamicWinnersList"></div>
+      </div>
+
+      <!-- Updates Tab -->
+      <div id="updatesTab" style="display:none">
+        <div class="update-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span class="badge badge-blue">📢 Announcement</span>
+            <span class="text-muted text-xs">Live now</span>
+          </div>
+          <p style="font-weight:600;font-size:.95rem;margin-bottom:4px" data-i18n="ann_title">Next winner announcement
+            in the timer above</p>
+          <p class="text-muted text-sm" data-i18n="ann_desc">Winners and product prizes are shared daily at midnight.
+            Stay active and check
+            here for the latest updates.</p>
+        </div>
+        <div class="update-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span class="badge badge-green">🎉 Milestone</span>
+            <span class="text-muted text-xs">1 day ago</span>
+          </div>
+          <p style="font-weight:600;font-size:.95rem;margin-bottom:4px" data-i18n="ms_title">1,000 users climbed the
+            leaderboard</p>
+          <p class="text-muted text-sm" data-i18n="ms_desc">Grow31 now has more daily achievers, and more prizes are
+            unlocked for top
+            performers.</p>
+        </div>
+        <div class="update-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span class="badge badge-yellow">🔔 Reminder</span>
+            <span class="text-muted text-xs">2 days ago</span>
+          </div>
+          <p style="font-weight:600;font-size:.95rem;margin-bottom:4px">Complete today’s tasks for prize eligibility</p>
+          <p class="text-muted text-sm">Finish your daily challenge and stay in the running for gadgets, headphones, and
+            bonus rewards.</p>
+        </div>
+      </div>
+
+      <!-- Schedule Tab -->
+      <div id="scheduleTab" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Full Competition Schedule</div>
+          </div>
+          <div style="padding:0 16px 16px">
+            <div class="schedule-row">
+              <div style="flex:1">
+                <div class="schedule-days" style="display:inline-block;margin-bottom:8px" data-i18n="days_1_6">Days 1–6
+                  (Per Day)</div>
+                <div class="schedule-wins">
+                  <span class="schedule-win-badge">1 Referral Win</span>
+                  <span class="schedule-win-badge pool">1 Pool Win</span>
+                </div>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div style="flex:1">
+                <div class="schedule-days" style="display:inline-block;margin-bottom:8px">Days 11–15 (Per Day)</div>
+                <div class="schedule-wins">
+                  <span class="schedule-win-badge">3 Referral Wins</span>
+                  <span class="schedule-win-badge pool">2 Pool Wins</span>
+                </div>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div style="flex:1">
+                <div class="schedule-days" style="display:inline-block;margin-bottom:8px">Days 16–20 (Per Day)</div>
+                <div class="schedule-wins">
+                  <span class="schedule-win-badge">5 Referral Wins</span>
+                  <span class="schedule-win-badge pool">3 Pool Wins</span>
+                </div>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div style="flex:1">
+                <div class="schedule-days" style="display:inline-block;margin-bottom:8px" data-i18n="days_21_25">Days
+                  21–25 (Per Day)</div>
+                <div class="schedule-wins">
+                  <span class="schedule-win-badge">7 Referral Wins</span>
+                  <span class="schedule-win-badge pool">5 Pool Wins</span>
+                </div>
+              </div>
+            </div>
+            <div class="schedule-row">
+              <div style="flex:1">
+                <div class="schedule-days" style="display:inline-block;margin-bottom:8px">Days 25–31 (Per Day)</div>
+                <div class="schedule-wins">
+                  <span class="schedule-win-badge">10 Referral Wins</span>
+                  <span class="schedule-win-badge pool">10 Pool Wins</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="winners-ann-footer" style="margin-top:auto" data-i18n="winners_ann">Winners announced at midnight
+        daily</div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- AI CHAT VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="aiChatView" style="min-height:100vh">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="ai_assistant">AI Assistant</div>
+      <button class="btn btn-outline btn-sm" onclick="clearChat()">Clear</button>
+    </div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-bubble ai" data-i18n="ai_intro">👋 Hi! I'm your Grow31 AI assistant. Ask me anything about the
+          challenge, tiers,
+          spin wheel, referrals, or how to earn more coins!</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Ask anything..."
+          onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()"><i data-lucide="send"
+            style="width:18px;height:18px"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- HELP VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="helpView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="help_support">Help</div>
+      <div style="width:60px"></div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading" data-i18n="help_support">Help &amp; Support</h2>
+      <div class="card mb-4" style="margin-bottom:12px">
+        <div class="card-content">
+          <p style="font-weight:700;margin-bottom:6px" data-i18n="email_support"><i data-lucide="mail"
+              style="width:16px;height:16px"></i> Email Support</p>
+          <p class="text-muted text-sm"><a href="/cdn-cgi/l/email-protection" class="__cf_email__"
+              data-cfemail="98ebede8e8f7eaecd8ffeaf7efaba9b6fbf7f5">[email&#160;protected]</a></p>
+          <p class="text-muted text-xs" style="margin-top:4px">Response within 24 hours</p>
+        </div>
+      </div>
+      <div class="card mb-4" style="margin-bottom:12px">
+        <div class="card-content">
+          <p style="font-weight:700;margin-bottom:10px" data-i18n="faq_title"><i data-lucide="help-circle"
+              style="width:16px;height:16px"></i> Frequently Asked Questions</p>
+          <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;margin-bottom:10px">
+            <p style="font-weight:600;font-size:.9rem;margin-bottom:4px" data-i18n="faq_q1">How do I earn coins?</p>
+            <p class="text-muted text-sm" data-i18n="faq_a1">Complete daily tasks, refer friends, spin the wheel, follow
+              on social media,
+              and daily check-ins.</p>
+          </div>
+          <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;margin-bottom:10px">
+            <p style="font-weight:600;font-size:.9rem;margin-bottom:4px" data-i18n="faq_q2">How does the tier system
+              work?</p>
+            <p class="text-muted text-sm" data-i18n="faq_a2">Each tier doubles in pool size. Advance by completing
+              referrals. Higher tiers
+              = higher rewards!</p>
+          </div>
+          <div style="border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px;margin-bottom:10px">
+            <p style="font-weight:600;font-size:.9rem;margin-bottom:4px">When are rewards distributed?</p>
+            <p class="text-muted text-sm">Pool wins are distributed daily based on the competition schedule. Referral
+              wins are instant.</p>
+          </div>
+          <div>
+            <p style="font-weight:600;font-size:.9rem;margin-bottom:4px">Is the ₹30 refundable?</p>
+            <p class="text-muted text-sm">The entry fee is non-refundable as it contributes to the prize pool.</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-blue btn-full" onclick="showView('aiChatView')">🤖 Chat with AI Assistant</button>
+    </div>
+  </div>
+
+  <!-- TERMS VIEW 2 (from inside app) -->
+  <div class="view" id="termsView2">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text" data-i18n="terms_cond">Policies</div>
+      <div style="width:60px"></div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading" style="font-size:1.2rem;margin-bottom:12px">📋 Grow31 Policies</h2>
+      <div class="terms-tab-nav">
+        <button class="terms-tab-btn active" onclick="switchTermsTab2('tc2',this)">T&amp;C</button>
+        <button class="terms-tab-btn" onclick="switchTermsTab2('privacy2',this)">Privacy</button>
+        <button class="terms-tab-btn" onclick="switchTermsTab2('refund2',this)">Refund</button>
+      </div>
+      <div class="terms-body terms-tab-panel active collapsed" id="tpanel-tc2"
+        style="flex:none;margin-bottom:10px;background:#fff;color:#000">
+        <h3>GROW31 - TERMS & CONDITIONS</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Last Updated: April 2026</p>
+        <h4>1. ACCEPTANCE OF TERMS</h4>
+        <p>By using Grow31, you agree to be bound by these Terms. We reserve the right to modify these Terms at any
+          time.</p>
+        <h4>2. LICENSE AND USE</h4>
+        <p>Limited, non-exclusive license for personal use. Copying or reverse engineering is strictly prohibited.</p>
+        <h4>3. USER ACCOUNTS</h4>
+        <p>Must be 18+ and provide accurate info. One account per person.</p>
+        <h4>4. PAYMENTS</h4>
+        <p>Prices in INR. All purchases final. Taxes may apply.</p>
+        <h4>5. INTELLECTUAL PROPERTY</h4>
+        <p>All content owned by Grow31 or licensors.</p>
+        <h4>6. LIABILITY</h4>
+        <p>App provided AS-IS. Liability capped at Rs.10,000.</p>
+        <h4>10. DISPUTE RESOLUTION</h4>
+        <p>Governed by laws of India. Jurisdiction: New Delhi.</p>
+      </div>
+      <div class="terms-body terms-tab-panel collapsed" id="tpanel-privacy2"
+        style="flex:none;margin-bottom:10px;background:#fff;color:#000">
+        <h3>GROW31 - PRIVACY POLICY</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Effective Date: April 2026</p>
+        <h4>1. INFORMATION WE COLLECT</h4>
+        <p>Account info and usage data. No payment card details stored.</p>
+        <h4>3. HOW WE USE INFORMATION</h4>
+        <p>Service delivery, improvement, and legal compliance.</p>
+        <h4>4. DATA SHARING</h4>
+        <p>Shared with trusted providers only. We do NOT sell your data.</p>
+        <h4>7. YOUR RIGHTS</h4>
+        <p>Right to access, correct, or delete data under DPDP Act 2023.</p>
+      </div>
+      <div class="terms-body terms-tab-panel collapsed" id="tpanel-refund2"
+        style="flex:none;margin-bottom:10px;background:#fff;color:#000">
+        <h3>GROW31 - REFUND & CANCELLATION</h3>
+        <p style="color:#666;font-size:.7rem;margin-bottom:12px">Effective Date: April 2026</p>
+        <h4>1. REFUND ELIGIBILITY</h4>
+        <p>Refunds within 7 days for unused items only.</p>
+        <h4>2. PROCESS</h4>
+        <p>Request via app or email support@grow31.app.</p>
+        <h4>5. REFUND ABUSE</h4>
+        <p>We reserve the right to deny refunds for abuse patterns.</p>
+      </div>
+      <div id="termsReadMore2"
+        style="text-align:center;margin-top:-30px;margin-bottom:20px;position:relative;z-index:20">
+        <button class="btn btn-sm" onclick="expandTerms2(this)"
+          style="background:#050510;color:#fff;padding:10px 24px;border-radius:30px;font-size:.85rem;box-shadow:0 6px 16px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);font-weight:700">Show
+          More</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- CONTACT VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="contactView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text">Contact</div>
+      <div class="flex items-center gap-2">
+        <div class="coins-pill" style="cursor:pointer" onclick="openWalletDialog()"><span class="g-coin"></span> <span
+            id="contactCoins">0</span></div>
+        <button class="dots-btn" onclick="openDrawer()"><i data-lucide="menu"
+            style="width:20px;height:20px"></i></button>
+      </div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading">Contact Us <i data-lucide="phone" style="width:20px;height:20px"></i></h2>
+      <p class="text-muted text-sm" style="margin-bottom:16px;line-height:1.6">We're here to help! Reach out via any of
+        the channels below.</p>
+
+      <!-- Phone Number -->
+      <div class="contact-card" onclick="window.open('tel:8097781211')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#25D366;border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(37,211,102,0.3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.81 12.81 0 0 0 .62 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.62A2 2 0 0 1 22 16.92z">
+            </path>
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">Call Support</p>
+          <p class="text-muted text-xs">+91 8097781211</p>
+          <p class="text-xs" style="color:#25D366;margin-top:2px">Instant voice support available</p>
+        </div>
+      </div>
+
+      <div class="contact-card" onclick="window.open('mailto:support@grow31.com')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#448aff;border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(68,138,255,0.3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">Email Support</p>
+          <p class="text-muted text-xs">support@grow31.com</p>
+          <p class="text-xs" style="color:#82b1ff;margin-top:2px">Response within 24 hours</p>
+        </div>
+      </div>
+
+      <!-- Social Links -->
+      <div class="contact-card" onclick="window.open('https://www.instagram.com/_grow31','_blank')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(220,39,67,0.3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">Instagram</p>
+          <p class="text-muted text-xs">@_grow31</p>
+          <p class="text-xs" style="color:#f48fb1;margin-top:2px">Follow for updates & giveaways</p>
+        </div>
+      </div>
+
+      <div class="contact-card" onclick="window.open('https://youtube.com/@grow31-u3s','_blank')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#FF0000;border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(255,0,0,0.3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">YouTube Channel</p>
+          <p class="text-muted text-xs">@grow31-u3s</p>
+          <p class="text-xs" style="color:#ff5252;margin-top:2px">Subscribe for videos & livestreams</p>
+        </div>
+      </div>
+
+      <div class="contact-card" onclick="window.open('https://wa.me/918097781211')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#25D366;border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(37,211,102,0.3)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.012 2c-5.508 0-9.988 4.48-9.988 9.988 0 1.764.46 3.42 1.264 4.86L2 22l5.304-1.392c1.404.764 3.008 1.196 4.708 1.196 5.508 0 9.988-4.48 9.988-9.988S17.52 2 12.012 2zm5.72 14.656c-.244.688-1.428 1.256-1.956 1.336-.472.072-1.088.104-1.748-.108-.4-.128-.9-.304-1.544-.58-2.736-1.184-4.52-3.952-4.656-4.136-.136-.184-1.108-1.472-1.108-2.812 0-1.34.7-2.004.948-2.268.248-.264.54-.332.72-.332.18 0 .36 0 .516.008.164.004.388-.06.604.464.224.544.76 1.848.824 1.98.068.132.112.284.024.46-.088.176-.132.284-.264.436l-.388.452c-.128.148-.264.312-.112.576.152.264.676 1.112 1.448 1.804.996.888 1.836 1.164 2.1 1.3.264.136.416.116.572-.064.156-.18.668-.78.844-1.044.176-.264.352-.224.592-.136s1.536.724 1.8.856c.264.132.44.2.504.308.064.108.064.624-.18 1.312z" />
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">WhatsApp Support</p>
+          <p class="text-muted text-xs">+91 8097781211</p>
+          <p class="text-xs" style="color:#25D366;margin-top:2px">Usually replies within a few hours</p>
+        </div>
+      </div>
+
+      <div class="contact-card" onclick="window.open('https://t.me/+JhvCkrA8Fg8yZTVl')">
+        <div
+          style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:#0088cc;border-radius:12px;color:#fff;box-shadow:0 4px 12px rgba(0,136,204,0.3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.891 7.021l-2.02 9.551c-.15.682-.557.85-.1.459l-3.084-2.274-1.489 1.432c-.164.164-.302.302-.62.302l.221-3.142 5.719-5.166c.249-.221-.054-.344-.381-.127l-7.07 4.453-3.041-.951c-.662-.207-.674-.662.138-.98l11.895-4.584c.551-.201 1.034.129.832.926z" />
+          </svg>
+        </div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem">Telegram Community</p>
+          <p class="text-muted text-xs">Join Official Channel</p>
+          <p class="text-xs" style="color:#0088cc;margin-top:2px">Join for updates & support</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:8px">
+        <div class="card-content">
+          <p style="font-weight:700;font-size:.9rem;margin-bottom:8px">📝 Send a Message</p>
+          <textarea class="input" id="contactMsg" placeholder="Your message..."
+            style="min-height:100px;margin-bottom:12px;resize:none"></textarea>
+          <button class="btn btn-white btn-full" onclick="sendContactMsg()">Send Message ✉️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- ADMIN VIEW -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="view" id="adminView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text">Admin Panel</div>
+      <button class="btn btn-outline btn-sm" onclick="exitAdmin()">Exit</button>
+    </div>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchAdminTab('users',this)">Users</button>
+      <button class="tab-btn" onclick="switchAdminTab('add-reward',this)">Rewards</button>
+      <button class="tab-btn" onclick="switchAdminTab('system',this)">System</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:20px 16px">
+      <div class="tab-panel active" id="atab-users">
+        <div id="adminUserList"></div>
+      </div>
+      <div class="tab-panel" id="atab-add-reward">
+        <div class="card">
+          <div class="card-content" style="padding:24px">
+            <h3 class="section-heading" style="margin-bottom:20px;font-size:1.1rem">Create New Reward</h3>
+            <input class="input mb-4" id="admRewName" placeholder="Reward Name" style="margin-bottom:12px">
+            <select class="input mb-4" id="admRewTier" style="margin-bottom:12px">
+              <option value="basic">Basic Tier</option>
+              <option value="advanced">Advanced Tier</option>
+              <option value="premium">Premium Tier</option>
+            </select>
+            <input class="input mb-4" id="admRewValue" placeholder="Value (e.g. ₹500)" style="margin-bottom:12px">
+            <textarea class="input mb-4" id="admRewDesc" placeholder="Description..."
+              style="margin-bottom:16px;min-height:80px"></textarea>
+            <button class="btn btn-white btn-full" onclick="addRewardAdmin()">Create Reward</button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="atab-system">
+        <div class="card" style="padding:24px;text-align:center">
+          <p class="text-muted text-sm" style="margin-bottom:20px">⚠️ Danger Zone — cannot be undone</p>
+          <button class="btn btn-danger btn-full mb-4" onclick="resetAllData()" style="margin-bottom:12px">RESET ALL
+            SYSTEM DATA</button>
+          <p class="text-muted text-xs" style="opacity:.5">Caution: Deletes everything in LocalStorage.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════ -->
+  <!-- DRAWER (3-dot menu) -->
+  <!-- ═════════════════════════════════════════ -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="mainDrawer">
+    <div class="drawer-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar-sleek" id="drawerAvatar" style="width:48px;height:48px;font-size:1.3rem;margin:0">🧑</div>
+        <div>
+          <p style="font-weight:700;font-size:.95rem" id="drawerName">User</p>
+          <p class="text-muted text-xs" id="drawerPhone">+91 xxxxxxxx</p>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showDashPage('pageMore')">
+      <span class="drawer-item-icon"><i data-lucide="user"></i></span><span data-i18n="profile">Profile</span><span
+        class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showLangDialog()">
+      <span class="drawer-item-icon"><i data-lucide="languages"></i></span><span
+        data-i18n="language">Language</span><span class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showCountryDialog()">
+      <span class="drawer-item-icon"><i data-lucide="globe"></i></span><span data-i18n="country">Country</span><span
+        class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showView('helpView')">
+      <span class="drawer-item-icon"><i data-lucide="help-circle"></i></span><span data-i18n="help_support">Help &amp;
+        Support</span><span class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showView('contactView')">
+      <span class="drawer-item-icon"><i data-lucide="phone"></i></span><span data-i18n="contact_us">Contact
+        Us</span><span class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showView('termsView2')">
+      <span class="drawer-item-icon"><i data-lucide="file-text"></i></span><span data-i18n="terms_cond">Terms &amp;
+        Conditions</span><span class="drawer-item-arr">›</span>
+    </div>
+    <div class="drawer-item" onclick="closeDrawer();showView('aiChatView')">
+      <span class="drawer-item-icon"><i data-lucide="bot"></i></span><span data-i18n="ai_assistant">AI Assistant</span>
+      <span class="badge badge-blue" style="margin-left:6px;font-size:.6rem">NEW</span><span
+        class="drawer-item-arr">›</span>
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.07)">
+      <p class="text-xs text-muted" style="margin-bottom:10px;letter-spacing:.05em;text-transform:uppercase">Follow
+        Grow31</p>
+      <div class="social-links" style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="social-btn" href="https://www.instagram.com/_grow31?igsh=ZTdneTg0OXVkYTRy&utm_source=qr"
+          target="_blank"
+          style="color:#fff;background:linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);border:none;box-shadow:0 4px 12px rgba(220,39,67,0.3)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+          </svg>
+        </a>
+        <a class="social-btn" href="https://youtube.com/@grow31-u3s?si=RVZX6ZbiKUb6jhWq" target="_blank"
+          style="color:#fff;background:#FF0000;border:none;box-shadow:0 4px 12px rgba(255,0,0,0.3)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+          </svg>
+        </a>
+        <a class="social-btn" href="https://t.me/+JhvCkrA8Fg8yZTVl" target="_blank"
+          style="color:#fff;background:#0088cc;border:none;box-shadow:0 4px 12px rgba(0,136,204,0.3)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.891 7.021l-2.02 9.551c-.15.682-.557.85-.1.459l-3.084-2.274-1.489 1.432c-.164.164-.302.302-.62.302l.221-3.142 5.719-5.166c.249-.221-.054-.344-.381-.127l-7.07 4.453-3.041-.951c-.662-.207-.674-.662.138-.98l11.895-4.584c.551-.201 1.034.129.832.926z" />
+          </svg>
+        </a>
+        <a class="social-btn" href="https://wa.me/918097781211" target="_blank"
+          style="color:#fff;background:#25D366;border:none;box-shadow:0 4px 12px rgba(37,211,102,0.3)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.012 2c-5.508 0-9.988 4.48-9.988 9.988 0 1.764.46 3.42 1.264 4.86L2 22l5.304-1.392c1.404.764 3.008 1.196 4.708 1.196 5.508 0 9.988-4.48 9.988-9.988S17.52 2 12.012 2zm5.72 14.656c-.244.688-1.428 1.256-1.956 1.336-.472.072-1.088.104-1.748-.108-.4-.128-.9-.304-1.544-.58-2.736-1.184-4.52-3.952-4.656-4.136-.136-.184-1.108-1.472-1.108-2.812 0-1.34.7-2.004.948-2.268.248-.264.54-.332.72-.332.18 0 .36 0 .516.008.164.004.388-.06.604.464.224.544.76 1.848.824 1.98.068.132.112.284.024.46-.088.176-.132.284-.264.436l-.388.452c-.128.148-.264.312-.112.576.152.264.676 1.112 1.448 1.804.996.888 1.836 1.164 2.1 1.3.264.136.416.116.572-.064.156-.18.668-.78.844-1.044.176-.264.352-.224.592-.136s1.536.724 1.8.856c.264.132.44.2.504.308.064.108.064.624-.18 1.312z" />
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div style="padding:16px 20px">
+      <button class="btn btn-danger btn-full" onclick="closeDrawer();doLogout()"><i data-lucide="log-out"
+          style="width:18px;height:18px"></i> Logout</button>
+    </div>
+  </div>
+
+  <!-- DIALOGS -->
+  <div class="dialog-overlay" id="spinResultDialog">
+    <div class="dialog" style="max-width:380px;text-align:center;padding:32px 24px">
+      <div id="spinResultIcon" style="font-size:3.5rem;margin-bottom:12px">🎉</div>
+      <h3 id="spinResultTitle"
+        style="font-family:'Poppins',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:8px">Winner!</h3>
+      <p id="spinResultDesc" class="text-muted" style="margin-bottom:24px"></p>
+      <button class="btn btn-white btn-full" onclick="closeDialog('spinResultDialog')">Awesome!</button>
+    </div>
+  </div>
+
+  <div class="dialog-overlay" id="refDialog">
+    <div class="dialog" style="max-width:420px">
+      <button class="dialog-close" onclick="closeDialog('refDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:4px">👥 Your Referral
+      </h3>
+      <p class="text-muted text-sm" style="margin-bottom:12px;font-size:.85rem">Share with friends to earn <span
+          id="refPerReferralLabel" style="color:#FFD700;font-weight:700">+50 <span class="g-coin"></span></span> each!
+      </p>
+      <div class="ref-code-display">
+        <p class="text-xs text-muted" style="margin-bottom:4px">Your Referral Link</p>
+        <h2 class="ref-code-text" id="myRefCodeDisplay" style="font-size:1rem;letter-spacing:1px;word-break:break-all">
+          Grow31/—</h2>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <button class="btn btn-white" onclick="copyRef()">📋 Copy Link</button>
+        <button class="btn btn-outline" onclick="shareRef()">📤 Share</button>
+      </div>
+      <div
+        style="background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.15);border-radius:10px;padding:12px;text-align:center;margin-bottom:14px">
+        <p class="text-xs" style="color:rgba(255,255,255,0.6)">Referrals: <span style="color:#00e676;font-weight:700"
+            id="refDialogCount">0</span> friends</p>
+        <p class="text-xs text-muted" style="margin-top:4px">Earned: <span style="color:#f5c518;font-weight:700"
+            id="refDialogEarned">0</span> <span class="g-coin"></span> from referrals</p>
+      </div>
+      <!-- Referral List -->
+      <div>
+        <p style="font-weight:700;font-size:.88rem;margin-bottom:8px">My Referrals</p>
+        <div id="refListContainer" style="max-height:180px;overflow-y:auto">
+          <p class="text-muted text-xs text-center" style="padding:12px;opacity:.5">No referrals yet. Share your link!
+          </p>
+        </div>
+      </div>
+      <!-- Daily timer -->
+      <div
+        style="background:rgba(68,138,255,0.07);border:1px solid rgba(68,138,255,0.15);border-radius:10px;padding:10px;margin-top:12px;text-align:center">
+        <p class="text-xs text-muted">⏰ Daily referral resets in: <span style="color:#82b1ff;font-weight:700"
+            id="refResetTimer">—</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET DIALOG -->
+  <div class="dialog-overlay" id="walletDialog">
+    <div class="dialog" style="max-width:400px">
+      <button class="dialog-close" onclick="closeDialog('walletDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:4px"><span
+          class="g-coin"></span> Coin Wallet
+      </h3>
+      <p class="text-muted text-xs" style="margin-bottom:16px">Your earnings &amp; payout history</p>
+      <div
+        style="background:linear-gradient(135deg,rgba(212,170,0,0.12),rgba(68,138,255,0.06));border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px">
+        <p class="text-xs text-muted" style="margin-bottom:4px">Total Balance</p>
+        <div style="font-family:'Poppins',sans-serif;font-size:2.2rem;font-weight:800;color:#FFD700"><span
+            class="g-coin"></span> <span id="walletBalance">0</span></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+          <span class="badge badge-pending" data-i18n="payout_pending">⏳ Payout: Pending Admin Verification</span>
+        </div>
+      </div>
+      <p style="font-weight:700;font-size:.88rem;margin-bottom:10px" data-i18n="tx_history">Transaction History</p>
+      <div id="walletTxList" style="max-height:200px;overflow-y:auto">
+        <p class="text-muted text-xs text-center" style="padding:16px;opacity:.5">No transactions yet</p>
+      </div>
+      <p class="text-xs text-muted text-center" style="margin-top:12px;opacity:.6;line-height:1.5"
+        data-i18n="redemption_disclaimer">Coin redemption is
+        subject to admin verification and platform liquidity. See T&amp;C for details.</p>
+    </div>
+  </div>
+
+
+  <!-- BUY MORE TIERS DIALOG -->
+  <div class="dialog-overlay" id="buyTiersDialog">
+    <div class="dialog" style="max-width:420px">
+      <button class="dialog-close" onclick="closeDialog('buyTiersDialog')">✕</button>
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:2rem;margin-bottom:6px">🛒</div>
+        <h3 style="font-family:'Poppins',sans-serif;font-size:1.15rem;font-weight:800;margin-bottom:2px"
+          data-i18n="buy_more_tiers">Buy More Tiers</h3>
+        <p class="text-muted text-xs" data-i18n="upgrade_pool_desc">Upgrade your pool access with tier purchases</p>
+      </div>
+
+      <!-- Current Tier Info -->
+      <div
+        style="background:rgba(156,39,176,0.1);border:1px solid rgba(156,39,176,0.3);border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <p class="text-xs text-muted" style="font-size:.65rem;margin-bottom:2px" data-i18n="current_tier">Current
+              Tier</p>
+            <p style="font-weight:800;font-size:1rem;color:#ce93d8" id="bsCurrentTier">Tier 31</p>
+          </div>
+          <div style="text-align:center">
+            <p class="text-xs text-muted" style="font-size:.65rem;margin-bottom:2px" data-i18n="queue_pos">Queue
+              Position</p>
+            <p style="font-weight:800;font-size:1rem;color:#82b1ff" id="bsQueuePos">#1</p>
+          </div>
+          <div style="text-align:right">
+            <p class="text-xs text-muted" style="font-size:.65rem;margin-bottom:2px" data-i18n="price_per_tier">Price
+              Per Tier</p>
+            <p style="font-weight:800;font-size:1rem;color:#00e676" id="bsPerTierPrice">₹30</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity Selector -->
+      <div
+        style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-weight:600;font-size:.85rem" data-i18n="num_of_seats">Number of Seats</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onclick="changeBuyQty(-1)"
+              style="width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+            <input type="number" id="bsQty" value="1" min="1" max="10" oninput="updateBuyTierPrice()"
+              style="width:50px;text-align:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#fff;font-size:1rem;font-weight:700;padding:6px;font-family:'Poppins',sans-serif">
+            <button onclick="changeBuyQty(1)"
+              style="width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          </div>
+        </div>
+        <div
+          style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08)">
+          <span class="text-muted text-xs" id="bsPerTier">1 seat × ₹31 each</span>
+          <div style="text-align:right">
+            <p class="text-xs text-muted" style="font-size:.65rem" data-i18n="total_price">Total Price</p>
+            <p style="font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:800;color:#ce93d8"
+              id="bsTotalPrice">₹31</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features of buying tiers -->
+      <div style="margin-bottom:12px">
+        <div
+          style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:.78rem;color:rgba(255,255,255,0.7)">
+          <span
+            style="width:20px;height:20px;background:rgba(0,230,118,0.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.65rem"><i
+              data-lucide="calendar" style="width:12px;height:12px"></i></span>
+          <span data-i18n="feat_full_access">Full 31-Day Challenge Access</span>
+        </div>
+        <div
+          style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:.78rem;color:rgba(255,255,255,0.7)">
+          <span
+            style="width:20px;height:20px;background:rgba(156,39,176,0.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.65rem"><span
+              class="g-coin"></span></span>
+          <span data-i18n="feat_coin_rewards">Daily Coin Rewards + Bonuses</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.78rem;color:rgba(255,255,255,0.7)">
+          <span
+            style="width:20px;height:20px;background:rgba(68,138,255,0.15);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.65rem"><i
+              data-lucide="trophy" style="width:12px;height:12px"></i></span>
+          <span data-i18n="feat_leaderboard">Leaderboard + Pool Eligibility</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn btn-outline btn-full" onclick="closeDialog('buyTiersDialog')"
+          style="font-weight:600;padding:12px">Back</button>
+        <button class="btn btn-white btn-full" onclick="confirmBuyTiers()" style="font-weight:700;padding:12px"
+          data-i18n="proceed">Proceed 🚀</button>
+      </div>
+      <p class="text-xs text-muted text-center" style="margin-top:10px;opacity:.5">🔒 Demo payment enabled · secure
+        simulation only</p>
+    </div>
+  </div>
+
+  <!-- PERKS VIEW -->
+  <div class="view" id="perksView">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack()" style="margin:0"><i data-lucide="chevron-left"
+          style="width:20px;height:20px"></i> <span data-i18n="back">Back</span></button>
+      <div class="logo-text"><img src="Images/LOGO.jpeg" alt="Grow31" class="app-logo"> Perks</div>
+      <div class="coins-pill"><span class="g-coin"></span> <span id="perksCoins">0</span></div>
+    </div>
+    <div class="page-content">
+      <h2 class="section-heading">🎁 Your Perks</h2>
+      <div
+        style="background:rgba(156,39,176,0.08);border:1px solid rgba(156,39,176,0.2);border-radius:12px;padding:20px;text-align:center;">
+        <p class="text-sm">🎁 Exclusive perks and rewards for loyal members are coming soon! Stay tuned.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR PICKER DIALOG -->
+  <div class="dialog-overlay" id="avatarPickerDialog">
+    <div class="dialog" style="max-width:400px">
+      <button class="dialog-close" onclick="closeDialog('avatarPickerDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:4px" data-i18n="select_avatar">Select
+        Avatar</h3>
+      <p class="text-muted text-xs" style="margin-bottom:16px" data-i18n="avatar_desc">Choose a sleek profile image or
+        upload your own</p>
+
+      <div id="avatarOptionsGrid" class="av-picker-grid"></div>
+
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="btn btn-blue btn-full" onclick="generateRandomAvatar()">
+          <i data-lucide="refresh-cw" style="width:16px;height:16px"></i> Randomize 🎲
+        </button>
+      </div>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1)">
+        <p class="text-xs text-muted" style="margin-bottom:10px">Or upload your own photo</p>
+        <input type="file" id="avatarUploadInput" style="display:none" accept="image/*"
+          onchange="handleAvatarUpload(event)">
+        <button class="btn btn-outline btn-full" onclick="document.getElementById('avatarUploadInput').click()">
+          <i data-lucide="upload" style="width:16px;height:16px"></i> Upload Photo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USERNAME EDIT DIALOG -->
+  <div class="dialog-overlay" id="usernameEditDialog">
+    <div class="dialog" style="max-width:380px">
+      <button class="dialog-close" onclick="closeDialog('usernameEditDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:12px" data-i18n="edit_username">Edit
+        Username</h3>
+      <input class="input mb-4" id="newUsernameInput" placeholder="New username" data-i18n="new_username_placeholder">
+      <button class="btn btn-white btn-full" onclick="saveNewUsername()" data-i18n="save_changes">Save Changes</button>
+    </div>
+  </div>
+
+  <!-- LANGUAGE DIALOG -->
+  <div class="dialog-overlay" id="langDialog">
+    <div class="dialog" style="max-width:340px">
+      <button class="dialog-close" onclick="closeDialog('langDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:12px" data-i18n="select_language">Select
+        Language</h3>
+      <div id="langOptions"></div>
+    </div>
+  </div>
+
+  <!-- COUNTRY DIALOG -->
+  <div class="dialog-overlay" id="countryDialog">
+    <div class="dialog" style="max-width:340px">
+      <button class="dialog-close" onclick="closeDialog('countryDialog')">✕</button>
+      <h3 style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:12px" data-i18n="select_country">Select
+        Country</h3>
+      <div id="countryOptions"></div>
+    </div>
+  </div>
+
+  <!-- TIER DIALOG -->
+  <div class="dialog-overlay" id="tierDialog">
+    <div class="dialog" style="max-width:420px">
+      <button class="dialog-close" onclick="closeDialog('tierDialog')">✕</button>
+      <h3 id="tierDialogTitle" style="font-family:'Poppins',sans-serif;font-weight:800;margin-bottom:4px">Tier Info</h3>
+      <p id="tierDialogDesc" class="text-muted text-xs" style="margin-bottom:16px"></p>
+      <div id="tierDialogContent"></div>
+      <button class="btn btn-outline btn-full btn-sm" onclick="closeDialog('tierDialog')"
+        style="margin-top:16px">Back</button>
+    </div>
+  </div>
+
+
+  <script src="app.js"></script>
+</body>
+
+</html>

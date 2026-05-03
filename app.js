@@ -1,0 +1,3927 @@
+// ═══════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════
+const CONFIG = {
+  MAX_TIERS: 31,
+  TIER_PRICE: 30,
+  LANGS: [
+    { code: 'en', label: 'English' },
+    { code: 'hi', label: 'हिंदी' },
+    { code: 'ta', label: 'தமிழ்' },
+    { code: 'te', label: 'తెలుగు' },
+    { code: 'bn', label: 'বাংলা' }
+  ],
+  COUNTRIES: [
+    { code: 'IN', label: '🇮🇳 India' },
+    { code: 'US', label: '🇺🇸 United States' },
+    { code: 'UK', label: '🇬🇧 United Kingdom' },
+    { code: 'AE', label: '🇦🇪 UAE' },
+    { code: 'SG', label: '🇸🇬 Singapore' }
+  ],
+  TIER_COLORS: [
+    '#ff5252', '#ff7043', '#ffa726', '#ffca28', '#d4e157',
+    '#66bb6a', '#26a69a', '#29b6f6', '#42a5f5', '#5c6bc0',
+    '#7e57c2', '#ab47bc', '#ec407a', '#ef5350', '#ff7043',
+    '#ff8a65', '#ffd54f', '#a5d6a7', '#80cbc4', '#81d4fa',
+    '#ce93d8', '#f48fb1', '#ffcc80', '#bcaaa4', '#b0bec5',
+    '#90caf9', '#80deea', '#a5d6a7', '#c5e1a5', '#fff176', '#ffe082'
+  ],
+  SPIN_PRIZES: [
+    { label: '30', coins: 30, color: '#f5c518', prob: 1 },
+    { label: '1', coins: 1, color: '#448aff', prob: 5000 },
+    { label: '10', coins: 10, color: '#00e676', prob: 200 },
+    { label: '0', coins: 0, color: '#555577', prob: 1000 },
+    { label: '5', coins: 5, color: '#ce93d8', prob: 400 },
+    { label: '15', coins: 15, color: '#29b6f6', prob: 80 },
+    { label: '20', coins: 20, color: '#ab47bc', prob: 40 },
+    { label: '25', coins: 25, color: '#66bb6a', prob: 10 }
+  ],
+  AVATARS: [
+    { id: 'av1', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Felix', label: 'av1' },
+    { id: 'av2', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Aneka', label: 'av2' },
+    { id: 'av3', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Jasper', label: 'av3' },
+    { id: 'av4', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Luna', label: 'av4' },
+    { id: 'av5', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Oliver', label: 'av5' },
+    { id: 'av6', url: 'https://api.dicebear.com/7.x/notionists/svg?seed=Sasha', label: 'av6' }
+  ],
+  LOGO_URL: 'Images/LOGO.jpeg'
+};
+
+const TIERS = [];
+for (let i = 1; i <= CONFIG.MAX_TIERS; i++) {
+  const reversedMembers = Math.pow(2, CONFIG.MAX_TIERS - i);
+  TIERS.push({ num: i, members: reversedMembers, price: i });
+}
+
+// ═══════════════════════════════════════════════════════
+// DATABASE & API SERVICE
+// ═══════════════════════════════════════════════════════
+const DB = {
+  get(k, d) { const v = localStorage.getItem('g31_' + k); return v ? JSON.parse(v) : d },
+  set(k, v) { localStorage.setItem('g31_' + k, JSON.stringify(v)) }
+};
+
+/**
+ * Service layer to handle all data requests. 
+ * Swap with real fetch/axios calls when backend is ready.
+ */
+class GrowService {
+  static async fetchTasks(day) {
+    // Backend: GET /api/tasks?day={day}&userId={uid}
+    return new Promise(resolve => setTimeout(() => resolve(getDailyTasks(day)), 100));
+  }
+  static async fetchWinners() {
+    return new Promise(resolve => resolve(Object.values(state.allUsers).sort((a, b) => b.coins - a.coins).slice(0, 5)));
+  }
+  static async syncUser(u) {
+    saveData();
+  }
+  static async login(phone, pin) {
+    // Backend: POST /api/auth/login
+    return new Promise(resolve => {
+      const u = state.allUsers[phone];
+      if (u && u.pin === pin) resolve(u);
+      else resolve(null);
+    });
+  }
+  static async logout() {
+    state.currentUser = null;
+    DB.set('currentUserPhone', null);
+    showView('authView');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let pendingReferralCode = '';
+let state = {
+  currentUser: null,
+  allUsers: DB.get('users', {}),
+  globalRewards: DB.get('globalRewards', [
+    { id: 'r1', name: 'Starter Pack', tier: 'basic', value: '₹50', description: 'Digital assets' },
+    { id: 'r2', name: 'Coffee Gift', tier: 'advanced', value: '₹100', description: 'Cafe voucher' }
+  ]),
+  spinRecords: DB.get('spinRecords', []),
+  sessionTermsAccepted: DB.get('termsAccepted', false),
+  currentView: DB.get('lastView', 'dashView'),
+  isBuyingSlots: false
+};
+
+function restoreSession() {
+  const currentPhone = DB.get('currentUserPhone', null);
+  if (currentPhone && state.allUsers[currentPhone]) {
+    state.currentUser = state.allUsers[currentPhone];
+    setTimeout(() => {
+      const u = state.currentUser;
+      const ni = document.getElementById('usernameInput');
+      const cs = document.getElementById('countrySelect');
+      const ls = document.getElementById('langSelect');
+      if (ni) ni.value = u.username || '';
+      if (cs) cs.value = u.country || 'IN';
+      if (ls) ls.value = u.lang || 'en';
+      if (u.avatar) {
+        const ae = document.getElementById('avatarEmoji');
+        if (ae) ae.innerText = u.avatar;
+      }
+      translateApp();
+    }, 100);
+  }
+}
+
+function prefillReferralFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = (params.get('ref') || params.get('referral') || params.get('code') || '').trim();
+  if (ref) {
+    pendingReferralCode = ref.toUpperCase();
+    DB.set('referralCode', pendingReferralCode);
+  } else {
+    pendingReferralCode = DB.get('referralCode', '');
+  }
+  const refInput = document.getElementById('refCodeInput');
+  if (refInput && pendingReferralCode) {
+    refInput.value = pendingReferralCode;
+  }
+}
+
+function fillReferralInputIfNeeded() {
+  const refInput = document.getElementById('refCodeInput');
+  if (refInput && !refInput.value) {
+    pendingReferralCode = pendingReferralCode || DB.get('referralCode', '');
+    if (pendingReferralCode) {
+      refInput.value = pendingReferralCode;
+    }
+  }
+}
+
+
+const I18N = {
+  en: {
+    daily_checkin: "Daily Check-In",
+    claim_bonus: "Claim your daily bonus to keep your streak alive!",
+    checkin_btn: "Check In Today",
+    challenge_active: "31-Day Challenge Active!",
+    complete_tasks: "Complete tasks daily to climb the leaderboard",
+    invite_friends: "Invite Friends",
+    earn_coins: "Earn +50 coins per referral",
+    your_code: "Your code:",
+    nav_home: "Home",
+    nav_tasks: "Tasks",
+    nav_invite: "Invite",
+    nav_spin: "Spin",
+    nav_reels: "Reels",
+    nav_more: "More",
+    back: "Back",
+    tutorial_videos: "Tutorial Videos",
+    admin_panel: "Admin Panel",
+    contact: "Contact",
+    perks_rewards: "Perks & Rewards",
+    winners_ann: "Winners announced at midnight daily",
+    next_results: "Next Results Announcement In",
+    winners_tab: "Winners",
+    updates_tab: "Updates",
+    schedule_tab: "Schedule",
+    streak: "Streak",
+    rank: "Rank",
+    today_tasks: "Today's Tasks",
+    see_all: "See All",
+    spin_wheel: "Spin Wheel",
+    win_big: "Win big coins!",
+    daily_quiz: "Daily Quiz",
+    qs_10: "10 Qs · Earn coins!",
+    follow_earn: "Follow & Earn",
+    social_rewards: "Social rewards",
+    today_results: "Today's results",
+    buy_tiers: "Buy More Tiers",
+    advance_faster: "Advance faster with new tiers",
+    tutorial_videos: "Tutorial Videos",
+    learn_earn: "Learn & earn!",
+    progress_31: "31-Day Progress",
+    profile: "Profile",
+    logout: "Logout",
+    settings: "Settings",
+    language: "Language",
+    country: "Country",
+    help_support: "Help & Support",
+    contact_us: "Contact Us",
+    terms_cond: "Terms & Conditions",
+    ai_assistant: "AI Assistant",
+    tier_system: "Tier System",
+    your_tier: "Your Current Tier",
+    queue_pos: "Position in queue:",
+    pool_members: "Pool members:",
+    your_seats: "Your seats:",
+    spin_ready: "Spin is Ready!",
+    spin_btn: "SPIN NOW",
+    tickets: "Tickets",
+    back: "Back",
+    day: "Day",
+    each: "each",
+    tasks: "Tasks",
+    tier: "Tier",
+    top_performer: "Top Performer",
+    estimated_prize: "Estimated Prize",
+    no_referrals: "No referrals yet. Share your link!",
+    task_done: "Task Done!",
+    welcome_bonus: "Welcome bonus",
+    referral_applied: "Referral bonus applied",
+    referral_from: "Referral bonus from",
+    coins: "Coins",
+    announcement: "Announcement",
+    milestone: "Milestone",
+    reminder: "Reminder",
+    ann_title: "Next winner announcement in the timer above",
+    ann_desc: "Winners and product prizes are shared daily at midnight. Stay active and check here for the latest updates.",
+    ms_title: "1,000 users climbed the leaderboard",
+    ms_desc: "Grow31 now has more daily achievers, and more prizes are unlocked for top performers.",
+    prize_1: "iPhone 15 Pro",
+    prize_2: "Studio Headphones",
+    prize_3: "AirPods Pro",
+    prize_4: "₹5,000 Voucher",
+    prize_5: "₹2,000 Voucher",
+    task_walk: "Morning Walk 🚶 (10 mins)",
+    task_read: "Read 10 Pages 📖",
+    task_water: "Drink 8 Glasses of Water 💧",
+    task_journal: "Journaling ✍️ (5 mins)",
+    task_meditation: "10-Min Meditation 🧘",
+    task_exercise: "Evening Exercise 🏋️ (15 mins)",
+    task_social: "No Social Media for 1 Hour 📵",
+    task_meal: "Eat a Healthy Meal 🥗",
+    task_sleep: "Sleep by 11 PM 😴",
+    task_gratitude: "Write a Gratitude Note 🙏",
+    secure: "Secure",
+    processing: "Processing",
+    lang_updated: "Language Updated",
+    signup_bonus: "Signup Bonus",
+    sandbox_mode: "Sandbox Mode",
+    instant_access: "Instant Access",
+    splash_tagline: "31 Days. One Challenge. Real Rewards.",
+    get_started: "Get Started 🚀",
+    select_lang: "Select your language & continue",
+    continue: "Continue",
+    agree_terms: "By continuing, you agree to our",
+    verify_otp: "Verify OTP",
+    code_sent: "Code sent to",
+    enter_6_digit: "Enter the 6-digit code",
+    verify_continue: "Verify & Continue",
+    welcome: "Welcome! 🎉",
+    have_ref_code: "Have a referral code? Earn bonus coins!",
+    finish_setup: "Finish Setup",
+    skip_for_now: "Skip for now",
+    read_accept_policies: "Read & Accept Policies",
+    tc_tab: "T&C",
+    privacy_tab: "Privacy",
+    refund_tab: "Refund",
+    show_more: "Show more",
+    i_agree_terms: "I have read and agree to the T&C, Privacy Policy & Refund Policy",
+    accept_continue: "Accept & Continue",
+    join_challenge: "Join the Challenge",
+    payment_meta: "One-time payment · Instant access · No hidden fees",
+    secure_checkout: "Secure Checkout",
+    trusted_gateway: "Trusted Gateway",
+    no_hidden_fees: "No Hidden Fees",
+    payment_trust_desc: "Trusted payment experience with secure verification and strong trust signals for every user.",
+    entry_fee: "Entry Fee",
+    base_tier_price: "Base tier price · All 31 Days",
+    feat_full_access: "31-Day Challenge Full Access",
+    feat_coin_rewards: "Daily Coin Rewards + Bonuses",
+    feat_tier_assignment: "Auto Tier Assignment (Tiers 1-31)",
+    feat_spin_wheel: "Spin Wheel – Win Big Prizes",
+    feat_leaderboard: "Leaderboard & Pool Wins",
+    feat_referral: "Referral Commissions",
+    pay_start_challenge: "Pay Tier Price & Start Challenge",
+    payment_success: "Payment Successful!",
+    tier_confirmed: "Your tier purchase is confirmed.",
+    continue_profile: "Continue to Profile Setup",
+    processing_payment: "Processing your payment...",
+    select_avatar: "Select Avatar",
+    avatar_desc: "Choose a sleek profile image or upload your own",
+    edit_username: "Edit Username",
+    new_username_placeholder: "New username",
+    save_changes: "Save Changes",
+    select_language: "Select Language",
+    select_country: "Select Country",
+    my_tiers: "My Tiers",
+    your_referral_link: "Your Referral Link",
+    learn_how_grow31: "Learn How to Grow31",
+    watch_tutorials_desc: "Watch these tutorial videos to understand how Grow31 works, earn coins, climb the leaderboard, and maximize your rewards!",
+    getting_started_title: "Getting Started with Grow31",
+    getting_started_desc: "Learn how to sign up, complete your profile, join the 31-day challenge, and make your first payment.",
+    watch_video_btn: "▶ Watch Video",
+    duration: "Duration",
+    level: "Level",
+    beginner: "Beginner",
+    enter_phone_to_start: "Enter your phone number to start your journey",
+    tc_title: "GROW31 - TERMS & CONDITIONS",
+    tc_intro: "By using Grow31, you agree to these terms. Last updated April 2026.",
+    tc_h1: "1. Acceptance",
+    tc_p1: "You agree to be bound by these terms by using the App.",
+    tc_h2: "2. License",
+    tc_p2: "Personal, non-commercial license grant with usage restrictions.",
+    tc_h3: "3. Accounts",
+    tc_p3: "Users must be 18+ and provide accurate registration data.",
+    tc_h4: "4. Payments",
+    tc_p4: "Prices in INR. All purchases final per refund policy.",
+    tc_h5: "5. Intellectual Property",
+    tc_p5: "All content owned by Grow31 or its licensors.",
+    tc_h7: "7. Liability",
+    tc_p7: "App provided AS-IS. Liability capped at Rs.10,000.",
+    tc_h8: "8. Governing Law",
+    tc_p8: "Governed by laws of India. Jurisdiction: New Delhi.",
+    pp_title: "GROW31 - PRIVACY POLICY",
+    pp_h1: "1. Data Collection",
+    pp_p1: "We collect name, phone, and usage data. No card details stored.",
+    rp_title: "GROW31 - REFUND & CANCELLATION",
+    rp_h1: "1. Eligibility",
+    rp_p1: "Refunds available within 7 days for unused items only.",
+    ad_space: "Advertisement Space",
+    ad_desc: "Your ad here · Contact us",
+    complete_profile_cta: "Complete Your Profile",
+    get_ref_id_bonus: "Get your Referral ID & earn 5 bonus coins",
+    current_tier: "Current Tier",
+    queue_pos: "Queue Position",
+    price_per_tier: "Price Per Tier",
+    num_of_seats: "Number of Seats",
+    total_price: "Total Price",
+    proceed: "Proceed",
+    ai_intro: "👋 Hi! I'm your Grow31 AI assistant. Ask me anything about the challenge, tiers, spin wheel, referrals, or how to earn more coins!",
+    faq_title: "Frequently Asked Questions",
+    faq_q1: "How do I earn coins?",
+    faq_a1: "Complete daily tasks, refer friends, spin the wheel, follow on social media, and daily check-ins.",
+    faq_q2: "How does the tier system work?",
+    faq_a2: "Each tier doubles in pool size. Advance by completing referrals. Higher tiers = higher rewards!",
+    payout_pending: "⏳ Payout: Pending Admin Verification",
+    redemption_disclaimer: "Coin redemption is subject to admin verification and platform liquidity. See T&C for details.",
+    buy_more_tiers: "Buy More Tiers",
+    upgrade_pool_desc: "Upgrade your pool access with tier purchases",
+    days_1_6: "Days 1–6 (Per Day)",
+    days_21_25: "Days 21–25 (Per Day)",
+    recent_wins: "Recent Wins",
+    spin_btn_center: "SPIN",
+    recent_wins_tab: "Recent Wins",
+    spin_leaderboard_tab: "Leaderboard",
+    top_winners: "Top Winners",
+    top_spinners: "Top Spinners",
+    ai_resp_1: "You earn coins through daily tasks, referrals, spin wheel wins, social follows, and daily check-ins!",
+    ai_resp_2: "The tier system has 31 levels. Advance by completing referrals. Higher tiers = higher rewards!",
+    ai_resp_3: "Daily competition: Early days have fewer winners, while higher days unlock more referral and pool wins!",
+    ai_resp_4: "To spin the wheel, you need spin tickets from daily check-ins or tasks. Prizes vary from coins to big rewards!",
+    ai_resp_5: "Complete your daily tasks and refer friends to earn coins and advance through tiers. The more you refer, the better!",
+    ai_error: "I'm having trouble connecting. Please try again!"
+  },
+  hi: {
+    daily_checkin: "डेली चेक-इन",
+    claim_bonus: "अपनी स्ट्रीक बनाए रखने के लिए अपना दैनिक बोनस प्राप्त करें!",
+    checkin_btn: "आज ही चेक-इन करें",
+    challenge_active: "31-दिन की चुनौती सक्रिय है!",
+    complete_tasks: "लीडरबोर्ड पर चढ़ने के लिए प्रतिदिन कार्य पूरे करें",
+    invite_friends: "दोस्तों को आमंत्रित करें",
+    earn_coins: "प्रत्येक रेफरल पर +50 सिक्के कमाएं",
+    your_code: "आपका कोड:",
+    nav_home: "होम",
+    nav_tasks: "कार्य",
+    nav_invite: "आमंत्रित",
+    nav_spin: "स्पिन",
+    nav_reels: "रिल्स",
+    nav_more: "अधिक",
+    back: "पीछे",
+    tutorial_videos: "ट्यूटोरियल वीडियो",
+    admin_panel: "एडमिन पैनल",
+    contact: "संपर्क",
+    perks_rewards: "पुरस्कार और लाभ",
+    winners_ann: "विजेताओं की घोषणा प्रतिदिन आधी रात को की जाती है",
+    next_results: "अगली परिणाम घोषणा में",
+    winners_tab: "विजेता",
+    updates_tab: "अपडेट",
+    schedule_tab: "शेड्यूल",
+    streak: "स्ट्रीक",
+    rank: "रैंक",
+    today_tasks: "आज के कार्य",
+    see_all: "सब देखें",
+    spin_wheel: "स्पिन व्हील",
+    win_big: "बड़े सिक्के जीतें!",
+    daily_quiz: "डेली क्विज़",
+    qs_10: "10 प्रश्न · सिक्के कमाएं!",
+    follow_earn: "फॉलो करें और कमाएं",
+    social_rewards: "सोशल रिवॉर्ड्स",
+    today_results: "आज के परिणाम",
+    buy_tiers: "अधिक टियर खरीदें",
+    advance_faster: "नए टियर के साथ तेजी से आगे बढ़ें",
+    tutorial_videos: "ट्यूटोरियल वीडियो",
+    learn_earn: "सीखें और कमाएं!",
+    progress_31: "31-दिन की प्रगति",
+    profile: "प्रोफ़ाइल",
+    logout: "लॉगआउट",
+    settings: "सेटिंग्स",
+    language: "भाषा",
+    country: "देश",
+    help_support: "सहायता और समर्थन",
+    contact_us: "हमसे संपर्क करें",
+    terms_cond: "नियम और शर्तें",
+    ai_assistant: "एआई सहायक",
+    tier_system: "टियर सिस्टम",
+    your_tier: "आपका वर्तमान टियर",
+    queue_pos: "कतार में स्थिति:",
+    pool_members: "पूल सदस्य:",
+    your_seats: "आपकी सीटें:",
+    spin_ready: "स्पिन तैयार है!",
+    spin_btn: "अभी स्पिन करें",
+    tickets: "टिकट",
+    back: "पीछे",
+    day: "दिन",
+    each: "प्रत्येक",
+    tasks: "कार्य",
+    tier: "टियर",
+    top_performer: "शीर्ष प्रदर्शनकर्ता",
+    estimated_prize: "अनुमानित पुरस्कार",
+    no_referrals: "अभी तक कोई रेफरल नहीं है। अपना लिंक साझा करें!",
+    task_done: "कार्य पूरा हुआ!",
+    welcome_bonus: "स्वागत बोनस",
+    referral_applied: "रेफरल बोनस लागू",
+    referral_from: "से रेफरल बोनस",
+    coins: "सिक्के",
+    announcement: "घोषणा",
+    milestone: "मील का पत्थर",
+    reminder: "अनुस्मारक",
+    ann_title: "अगली विजेता घोषणा ऊपर दिए गए टाइमर में है",
+    ann_desc: "विजेताओं और उत्पाद पुरस्कारों को दैनिक आधी रात को साझा किया जाता है। सक्रिय रहें और नवीनतम अपडेट के लिए यहां जांचें।",
+    ms_title: "1,000 उपयोगकर्ताओं ने लीडरबोर्ड पर चढ़ाई की",
+    ms_desc: "Grow31 में अब अधिक दैनिक उपलब्धि हासिल करने वाले हैं, और शीर्ष प्रदर्शन करने वालों के लिए अधिक पुरस्कार अनलॉक किए गए हैं।",
+    prize_1: "आईफोन 15 प्रो",
+    prize_2: "स्टूडियो हेडफ़ोन",
+    prize_3: "एयरपॉड्स प्रो",
+    prize_4: "₹5,000 वाउचर",
+    prize_5: "₹2,000 वाउचर",
+    task_walk: "सुबह की सैर 🚶 (10 मिनट)",
+    task_read: "10 पेज पढ़ें 📖",
+    task_water: "8 गिलास पानी पिएं 💧",
+    task_journal: "जर्नलिंग ✍️ (5 मिनट)",
+    task_meditation: "10 मिनट का ध्यान 🧘",
+    task_exercise: "शाम का व्यायाम 🏋️ (15 मिनट)",
+    task_social: "1 घंटे तक कोई सोशल मीडिया नहीं 📵",
+    task_meal: "स्वस्थ भोजन करें 🥗",
+    task_sleep: "रात 11 बजे तक सो जाएं 😴",
+    task_gratitude: "एक आभार नोट लिखें 🙏",
+    secure: "सुरक्षित",
+    processing: "प्रसंस्करण",
+    lang_updated: "भाषा अपडेट की गई",
+    signup_bonus: "साइनअप बोनस",
+    sandbox_mode: "सैंडबॉक्स मोड",
+    instant_access: "तत्काल पहुंच",
+    splash_tagline: "31 दिन। एक चुनौती। वास्तविक पुरस्कार।",
+    get_started: "शुरू करें 🚀",
+    select_lang: "अपनी भाषा चुनें और जारी रखें",
+    continue: "जारी रखें",
+    agree_terms: "जारी रखकर, आप हमारी इन शर्तों से सहमत होते हैं",
+    verify_otp: "ओटीपी सत्यापित करें",
+    code_sent: "कोड भेजा गया",
+    enter_6_digit: "6-अंकीय कोड दर्ज करें",
+    verify_continue: "सत्यापित करें और जारी रखें",
+    welcome: "स्वागत है! 🎉",
+    have_ref_code: "क्या आपके पास रेफरल कोड है? बोनस सिक्के कमाएं!",
+    finish_setup: "सेटअप पूरा करें",
+    skip_for_now: "अभी छोड़ें",
+    read_accept_policies: "नीतियाँ पढ़ें और स्वीकार करें",
+    tc_tab: "नियम और शर्तें",
+    privacy_tab: "गोपनीयता",
+    refund_tab: "धनवापसी",
+    show_more: "और दिखाएं",
+    i_agree_terms: "मैंने नियम और शर्तें, गोपनीयता नीति और धनवापसी नीति पढ़ ली है और मैं उनसे सहमत हूं",
+    accept_continue: "स्वीकार करें और जारी रखें",
+    join_challenge: "चुनौती में शामिल हों",
+    payment_meta: "एकमुश्त भुगतान · तत्काल पहुंच · कोई छिपी हुई फीस नहीं",
+    secure_checkout: "सुरक्षित चेकआउट",
+    trusted_gateway: "विश्वसनीय गेटवे",
+    no_hidden_fees: "कोई छिपी हुई फीस नहीं",
+    payment_trust_desc: "प्रत्येक उपयोगकर्ता के लिए सुरक्षित सत्यापन और मजबूत विश्वास संकेतों के साथ विश्वसनीय भुगतान अनुभव।",
+    entry_fee: "प्रवेश शुल्क",
+    base_tier_price: "बेस टियर मूल्य · सभी 31 दिन",
+    feat_full_access: "31-दिन की चुनौती पूर्ण पहुंच",
+    feat_coin_rewards: "दैनिक सिक्का पुरस्कार + बोनस",
+    feat_tier_assignment: "ऑटो टियर असाइनमेंट (टियर 1-31)",
+    feat_spin_wheel: "स्पिन व्हील - बड़े पुरस्कार जीतें",
+    feat_leaderboard: "लीडरबोर्ड और पूल जीत",
+    feat_referral: "रेफरल कमीशन",
+    pay_start_challenge: "टियर मूल्य का भुगतान करें और चुनौती शुरू करें",
+    payment_success: "भुगतान सफल!",
+    tier_confirmed: "आपकी टियर खरीद की पुष्टि हो गई है।",
+    continue_profile: "प्रोफ़ाइल सेटअप जारी रखें",
+    processing_payment: "आपका भुगतान संसाधित किया जा रहा है...",
+    select_avatar: "अवतार चुनें",
+    avatar_desc: "एक आकर्षक प्रोफ़ाइल छवि चुनें या अपनी खुद की अपलोड करें",
+    edit_username: "उपयोगकर्ता नाम संपादित करें",
+    new_username_placeholder: "नया उपयोगकर्ता नाम",
+    save_changes: "परिवर्तन सहेजें",
+    select_language: "भाषा चुनें",
+    select_country: "देश चुनें",
+    my_tiers: "मेरे टियर",
+    your_referral_link: "आपका रेफरल लिंक",
+    learn_how_grow31: "Grow31 कैसे काम करता है सीखें",
+    watch_tutorials_desc: "Grow31 कैसे काम करता है, सिक्के कैसे कमाएं, लीडरबोर्ड पर कैसे चढ़ें, और अपने पुरस्कारों को अधिकतम कैसे करें, यह समझने के लिए ये ट्यूटोरियल वीडियो देखें!",
+    getting_started_title: "Grow31 के साथ शुरुआत करना",
+    getting_started_desc: "साइन अप करना, अपनी प्रोफ़ाइल पूरी करना, 31-दिवसीय चुनौती में शामिल होना और अपना पहला भुगतान करना सीखें।",
+    watch_video_btn: "▶ वीडियो देखें",
+    duration: "अवधि",
+    level: "स्तर",
+    beginner: "शुरुआती",
+    enter_phone_to_start: "अपनी यात्रा शुरू करने के लिए अपना फोन नंबर दर्ज करें",
+    tc_title: "GROW31 - नियम और शर्तें",
+    tc_intro: "Grow31 का उपयोग करके, आप इन शर्तों से सहमत होते हैं। अंतिम अपडेट अप्रैल 2026।",
+    tc_h1: "1. स्वीकृति",
+    tc_p1: "ऐप का उपयोग करके आप इन शर्तों से बंधे होने के लिए सहमत हैं।",
+    tc_h2: "2. लाइसेंस",
+    tc_p2: "उपयोग प्रतिबंधों के साथ व्यक्तिगत, गैर-व्यावसायिक लाइसेंस प्रदान किया गया।",
+    tc_h3: "3. खाते",
+    tc_p3: "उपयोगकर्ताओं की आयु 18+ होनी चाहिए और सटीक पंजीकरण डेटा प्रदान करना चाहिए।",
+    tc_h4: "4. भुगतान",
+    tc_p4: "कीमतें INR में हैं। रिफंड नीति के अनुसार सभी खरीदारी अंतिम हैं।",
+    tc_h5: "5. बौद्धिक संपदा",
+    tc_p5: "सभी सामग्री Grow31 या उसके लाइसेंसधारियों के स्वामित्व में है।",
+    tc_h7: "7. दायित्व",
+    tc_p7: "ऐप AS-IS प्रदान किया गया है। दायित्व 10,000 रुपये तक सीमित है।",
+    tc_h8: "8. शासी कानून",
+    tc_p8: "भारत के कानूनों द्वारा शासित। क्षेत्राधिकार: नई दिल्ली।",
+    pp_title: "GROW31 - गोपनीयता नीति",
+    pp_h1: "1. डेटा संग्रह",
+    pp_p1: "हम नाम, फोन और उपयोग डेटा एकत्र करते हैं। कोई कार्ड विवरण संग्रहीत नहीं।",
+    rp_title: "GROW31 - रिफंड और रद्दीकरण",
+    rp_h1: "1. पात्रता",
+    rp_p1: "केवल अप्रयुक्त वस्तुओं के लिए 7 दिनों के भीतर रिफंड उपलब्ध है।",
+    ad_space: "विज्ञापन स्थान",
+    ad_desc: "आपका विज्ञापन यहाँ · हमसे संपर्क करें",
+    complete_profile_cta: "अपनी प्रोफ़ाइल पूरी करें",
+    get_ref_id_bonus: "अपनी रेफरल आईडी प्राप्त करें और 5 बोनस सिक्के कमाएं",
+    current_tier: "वर्तमान टियर",
+    queue_pos: "कतार स्थिति",
+    price_per_tier: "प्रति टियर मूल्य",
+    num_of_seats: "सीटों की संख्या",
+    total_price: "कुल मूल्य",
+    proceed: "आगे बढ़ें",
+    ai_intro: "👋 नमस्ते! मैं आपका Grow31 AI सहायक हूँ। मुझसे चुनौती, टियर, स्पिन व्हील, रेफरल, या अधिक सिक्के कमाने के बारे में कुछ भी पूछें!",
+    faq_title: "अक्सर पूछे जाने वाले प्रश्न",
+    faq_q1: "मैं सिक्के कैसे कमाऊं?",
+    faq_a1: "दैनिक कार्य पूरे करें, दोस्तों को रेफर करें, पहिया घुमाएं, सोशल मीडिया पर फॉलो करें और दैनिक चेक-इन करें।",
+    faq_q2: "टियर सिस्टम कैसे काम करता है?",
+    faq_a2: "प्रत्येक टियर पूल आकार में दोगुना हो जाता है। रेफरल पूरा करके आगे बढ़ें। उच्च टियर = उच्च पुरस्कार!",
+    payout_pending: "⏳ भुगतान: व्यवस्थापक सत्यापन लंबित",
+    redemption_disclaimer: "सिक्का रिडेम्पशन व्यवस्थापक सत्यापन और प्लेटफॉर्म तरलता के अधीन है। विवरण के लिए नियम और शर्तें देखें।",
+    buy_more_tiers: "अधिक टियर खरीदें",
+    upgrade_pool_desc: "टियर खरीदारी के साथ अपने पूल एक्सेस को अपग्रेड करें",
+    days_1_6: "दिन 1-6 (प्रति दिन)",
+    days_21_25: "दिन 21-25 (प्रति दिन)",
+    recent_wins: "हालिया जीत",
+    spin_btn_center: "स्पिन",
+    recent_wins_tab: "हालिया जीत",
+    spin_leaderboard_tab: "लीडरबोर्ड",
+    top_winners: "शीर्ष विजेता",
+    top_spinners: "शीर्ष स्पिनर",
+    ai_resp_1: "आप दैनिक कार्यों, रेफरल, स्पिन व्हील जीत, सोशल मीडिया फॉलो और दैनिक चेक-इन के माध्यम से सिक्के कमाते हैं!",
+    ai_resp_2: "टियर सिस्टम में 31 स्तर हैं। रेफरल पूरा करके आगे बढ़ें। उच्च टियर = उच्च पुरस्कार!",
+    ai_resp_3: "दैनिक प्रतियोगिता: शुरुआती दिनों में कम विजेता होते हैं, जबकि उच्च दिन अधिक रेफरल और पूल जीत अनलॉक करते हैं!",
+    ai_resp_4: "पहिया घुमाने के लिए, आपको दैनिक चेक-इन या कार्यों से स्पिन टिकट की आवश्यकता होती है। पुरस्कार सिक्कों से लेकर बड़े पुरस्कारों तक भिन्न होते हैं!",
+    ai_resp_5: "सिक्के कमाने और टियर के माध्यम से आगे बढ़ने के लिए अपने दैनिक कार्यों को पूरा करें और दोस्तों को रेफर करें। जितना अधिक आप रेफर करेंगे, उतना ही बेहतर होगा!",
+    ai_error: "मुझे कनेक्ट करने में समस्या हो रही है। कृपया पुनः प्रयास करें!"
+  },
+  ta: {
+    daily_checkin: "தினசரி செக்-இன்",
+    claim_bonus: "உங்கள் தினசரி போனஸைப் பெற்று உங்கள் ஸ்ட்ரீக்கை தொடருங்கள்!",
+    checkin_btn: "இன்று செக்-இன் செய்க",
+    challenge_active: "31-நாள் சவால் செயலில் உள்ளது!",
+    complete_tasks: "லீடர்போர்டில் ஏற தினமும் பணிகளை முடிக்கவும்",
+    invite_friends: "நண்பர்களை அழைக்கவும்",
+    earn_coins: "ஒவ்வொரு பரிந்துரைக்கும் +50 நாணயங்கள்",
+    your_code: "உங்கள் குறியீடு:",
+    nav_home: "முகப்பு",
+    nav_tasks: "பணிகள்",
+    nav_invite: "அழைப்பு",
+    nav_spin: "ஸ்பின்",
+    nav_reels: "ரீல்ஸ்",
+    nav_more: "மேலும்",
+    winners_ann: "வெற்றியாளர்கள் தினமும் நள்ளிரவில் அறிவிக்கப்படுவார்கள்",
+    next_results: "அடுத்த முடிவு அறிவிப்பு",
+    winners_tab: "வெற்றியாளர்கள்",
+    updates_tab: "புதுப்பிப்புகள்",
+    schedule_tab: "அட்டவணை",
+    streak: "ஸ்ட்ரீக்",
+    rank: "தரவரிசை",
+    today_tasks: "இன்றைய பணிகள்",
+    see_all: "அனைத்தையும் பார்",
+    spin_wheel: "ஸ்பின் வீல்",
+    win_big: "பெரிய நாணயங்களை வெல்லுங்கள்!",
+    daily_quiz: "தினசரி வினாடி வினா",
+    qs_10: "10 கேள்விகள் · நாணயங்களை சம்பாதிக்கவும்!",
+    follow_earn: "பின்தொடர்ந்து சம்பாதிக்கவும்",
+    social_rewards: "சமூக வெகுமதிகள்",
+    winners: "வெற்றியாளர்கள்",
+    today_results: "இன்றைய முடிவுகள்",
+    buy_tiers: "கூடுதல் அடுக்குகளை வாங்கவும்",
+    advance_faster: "புதிய அடுக்குகள் மூலம் வேகமாக முன்னேறுங்கள்",
+    tutorial_videos: "பயிற்சி வீடியோக்கள்",
+    learn_earn: "கற்றுக்கொண்டு சம்பாதிக்கவும்!",
+    progress_31: "31-நாள் முன்னேற்றம்",
+    profile: "சுயவிவரம்",
+    logout: "வெளியேறு",
+    settings: "அமைப்புகள்",
+    language: "மொழி",
+    country: "நாடு",
+    help_support: "உதவி மற்றும் ஆதரவு",
+    contact_us: "எங்களைத் தொடர்பு கொள்ளவும்",
+    terms_cond: "நிபந்தனைகள்",
+    ai_assistant: "AI உதவியாளர்",
+    tier_system: "அடுக்கு அமைப்பு",
+    your_tier: "உங்கள் தற்போதைய அடுக்கு",
+    queue_pos: "வரிசையில் நிலை:",
+    pool_members: "குழு உறுப்பினர்கள்:",
+    your_seats: "உங்கள் இடங்கள்:",
+    spin_ready: "ஸ்பின் தயார்!",
+    spin_btn: "இப்போது ஸ்பின் செய்க",
+    tickets: "டிக்கெட்டுகள்",
+    back: "திரும்பிச் செல்",
+    day: "நாள்",
+    each: "ஒவ்வொரு",
+    tasks: "பணிகள்",
+    tier: "அடுக்கு",
+    top_performer: "சிறந்த செயல்திறன்",
+    estimated_prize: "மதிப்பிடப்பட்ட பரிசு",
+    no_referrals: "இன்னும் பரிந்துரைகள் இல்லை. உங்கள் இணைப்பைப் பகிரவும்!",
+    task_done: "பணி முடிந்தது!",
+    welcome_bonus: "வரவேற்பு போனஸ்",
+    referral_applied: "பரிந்துரை போனஸ் பயன்படுத்தப்பட்டது",
+    referral_from: "இலிருந்து பரிந்துரை போனஸ்",
+    coins: "நாணயங்கள்",
+    announcement: "அறிவிப்பு",
+    milestone: "மைல்கல்",
+    reminder: "நினைவூட்டல்",
+    prize_1: "iPhone 15 Pro",
+    prize_2: "Studio Headphones",
+    prize_3: "AirPods Pro",
+    prize_4: "₹5,000 Voucher",
+    prize_5: "₹2,000 Voucher",
+    task_walk: "காலை நடைப்பயிற்சி 🚶 (10 நிமிடம்)",
+    task_read: "10 பக்கங்கள் படிக்கவும் 📖",
+    task_water: "8 கிளாஸ் தண்ணீர் குடிக்கவும் 💧",
+    task_journal: "டைரி எழுதுதல் ✍️ (5 நிமிடம்)",
+    task_meditation: "10 நிமிடம் தியானம் 🧘",
+    task_exercise: "மாலை உடற்பயிற்சி 🏋️ (15 நிமிடம்)",
+    task_social: "1 மணிநேரம் சமூக வலைதளங்கள் தவிர்க்கவும் 📵",
+    task_meal: "ஆரோக்கியமான உணவு உண்ணுங்கள் 🥗",
+    task_sleep: "இரவு 11 மணிக்குள் தூங்குங்கள் 😴",
+    task_gratitude: "நன்றி குறிப்பு எழுதுங்கள் 🙏"
+  },
+  te: {
+    daily_checkin: "రోజువారీ చెక్-ఇన్",
+    claim_bonus: "మీ రోజువారీ బోనస్‌ను పొంది మీ స్ట్రీక్‌ను కొనసాగించండి!",
+    checkin_btn: "ఈరోజు చెక్-ఇన్ చేయండి",
+    challenge_active: "31-రోజుల ఛాలెంజ్ యాక్టివ్‌గా ఉంది!",
+    complete_tasks: "లీడర్‌బోర్డ్‌లో ఎదగడానికి ప్రతిరోజూ పనులను పూర్తి చేయండి",
+    invite_friends: "స్నేహితులను ఆహ్వానించండి",
+    earn_coins: "ప్రతి రెఫరల్‌కు +50 నాణేలు",
+    your_code: "మీ కోడ్:",
+    nav_home: "హోమ్",
+    nav_tasks: "పనులు",
+    nav_invite: "ఆహ్వానం",
+    nav_spin: "స్పిన్",
+    nav_reels: "రీల్స్",
+    nav_more: "మరిన్ని",
+    winners_ann: "విజేతలు ప్రతిరోజూ అర్ధరాత్రి ప్రకటించబడతారు",
+    next_results: "తదుపరి ఫలితాల ప్రకటన",
+    winners_tab: "విజేతలు",
+    updates_tab: "అప్‌డేట్లు",
+    schedule_tab: "షెడ్యూల్",
+    streak: "స్ట్రీక్",
+    rank: "ర్యాంక్",
+    today_tasks: "నేటి పనులు",
+    see_all: "అన్నీ చూడండి",
+    spin_wheel: "స్పిన్ వీల్",
+    win_big: "పెద్ద నాణేలను గెలుచుకోండి!",
+    daily_quiz: "రోజువారీ క్విజ్",
+    qs_10: "10 ప్రశ్నలు · నాణేలు సంపాదించండి!",
+    follow_earn: "ఫాలో అయ్యి సంపాదించండి",
+    social_rewards: "సోషల్ రివార్డ్స్",
+    winners: "విజేతలు",
+    today_results: "నేటి ఫలితాలు",
+    buy_tiers: "మరిన్ని టైర్లను కొనండి",
+    advance_faster: "కొత్త టైర్లతో వేగంగా ముందుకు సాగండి",
+    tutorial_videos: "ట్యుటోరియల్ వీడియోలు",
+    learn_earn: "నేర్చుకోండి మరియు సంపాదించండి!",
+    progress_31: "31-రోజుల పురోగతి",
+    profile: "ప్రొఫైల్",
+    logout: "లాగ్ అవుట్",
+    settings: "సెట్టింగులు",
+    language: "భాష",
+    country: "దేశం",
+    help_support: "సహాయం మరియు మద్దతు",
+    contact_us: "మమ్మల్ని సంప్రదించండి",
+    terms_cond: "నిబంధనలు",
+    ai_assistant: "AI అసిస్టెంట్",
+    tier_system: "టైర్ సిస్టమ్",
+    your_tier: "మీ ప్రస్తుత టైర్",
+    queue_pos: "క్యూలో స్థానం:",
+    pool_members: "పూల్ సభ్యులు:",
+    your_seats: "మీ సీట్లు:",
+    spin_ready: "స్పిన్ సిద్ధంగా ఉంది!",
+    spin_btn: "ఇప్పుడే స్పిన్ చేయండి",
+    tickets: "టిక్కెట్లు",
+    back: "వెనుకకు",
+    day: "రోజు",
+    each: "ప్రతి",
+    tasks: "పనులు",
+    tier: "టైర్",
+    top_performer: "టాప్ పెర్ఫార్మర్",
+    estimated_prize: "అంచనా వేసిన బహుమతి",
+    no_referrals: "ఇంకా రెఫరల్స్ లేవు. మీ లింక్‌ను షేర్ చేయండి!",
+    task_done: "పని పూర్తయింది!",
+    welcome_bonus: "స్వాగత బోనస్",
+    referral_applied: "రెఫరల్ బోనస్ వర్తింపజేయబడింది",
+    referral_from: "నుండి రెఫరల్ బోనస్",
+    coins: "నాణేలు",
+    announcement: "ప్రకటన",
+    milestone: "మైలురాయి",
+    reminder: "రిమైండర్",
+    of: "లో",
+    keep_going: "కొనసాగించండి! 🔥",
+    lang_updated: "భాష నవీకరించబడింది!",
+    country_updated: "దేశం నవీకరించబడింది!",
+    prize_1: "iPhone 15 Pro",
+    prize_2: "Studio Headphones",
+    prize_3: "AirPods Pro",
+    prize_4: "₹5,000 Voucher",
+    prize_5: "₹2,000 Voucher",
+    task_walk: "ఉదయం నడక 🚶 (10 నిమిషాలు)",
+    task_read: "10 పేజీలు చదవండి 📖",
+    task_water: "8 గ్లాసుల నీరు త్రాగండి 💧",
+    task_journal: "జర్నలింగ్ ✍️ (5 నిమిషాలు)",
+    task_meditation: "10 నిమిషాల ధ్యానం 🧘",
+    task_exercise: "సాయంత్రం వ్యాయామం 🏋️ (15 నిమిషాలు)",
+    task_social: "1 గంట సోషల్ మీడియా వద్దు 📵",
+    task_meal: "ఆరోగ్యకరమైన భోజనం తీసుకోండి 🥗",
+    task_sleep: "రాత్రి 11 గంటలకు నిద్రపోండి 😴",
+    task_gratitude: "కృతజ్ఞతా నోట్ రాయండి 🙏"
+  },
+  bn: {
+    daily_checkin: "দৈনিক চেক-ইন",
+    claim_bonus: "আপনার স্ট্রিক বজায় রাখতে দৈনিক বোনাস সংগ্রহ করুন!",
+    checkin_btn: "আজ চেক-ইন করুন",
+    challenge_active: "৩১ দিনের চ্যালেঞ্জ সক্রিয়!",
+    complete_tasks: "লিডারবোর্ডে উঠতে প্রতিদিন কাজ সম্পন্ন করুন",
+    invite_friends: "বন্ধুদের আমন্ত্রণ জানান",
+    earn_coins: "প্রতি রেফারেলের জন্য +৫০ কয়েন",
+    your_code: "আপনার কোড:",
+    nav_home: "হোম",
+    nav_tasks: "কাজ",
+    nav_invite: "আমন্ত্রণ",
+    nav_spin: "স্পিন",
+    nav_reels: "রিলস",
+    nav_more: "আরও",
+    winners_ann: "প্রতিদিন মধ্যরাতে বিজয়ীদের ঘোষণা করা হয়",
+    next_results: "পরবর্তী ফলাফল ঘোষণা",
+    winners_tab: "বিজয়ী",
+    updates_tab: "আপডেট",
+    schedule_tab: "সময়সূচী",
+    streak: "স্ট্রিক",
+    rank: "র‍্যাঙ্ক",
+    today_tasks: "আজকের কাজ",
+    see_all: "সব দেখুন",
+    spin_wheel: "স্পিন হুইল",
+    win_big: "বড় কয়েন জিতুন!",
+    daily_quiz: "দৈনিক কুইজ",
+    qs_10: "১০টি প্রশ্ন · কয়েন উপার্জন করুন!",
+    follow_earn: "ফলো করে আয় করুন",
+    social_rewards: "সোশ্যাল রিওয়ার্ডস",
+    winners: "বিজয়ী",
+    today_results: "আজকের ফলাফল",
+    buy_tiers: "আরও টিয়ার কিনুন",
+    advance_faster: "নতুন টিয়ারের সাথে দ্রুত এগিয়ে যান",
+    tutorial_videos: "টিউটোরিয়াল ভিডিও",
+    learn_earn: "শিখুন এবং আয় করুন!",
+    progress_31: "৩১ দিনের অগ্রগতি",
+    profile: "প্রোফাইল",
+    logout: "লগআউট",
+    settings: "সেটিংস",
+    language: "ভাষা",
+    country: "দেশ",
+    help_support: "সহায়তা ও সমর্থন",
+    contact_us: "আমাদের সাথে যোগাযোগ করুন",
+    terms_cond: "শর্তাবলী",
+    ai_assistant: "এআই সহকারী",
+    tier_system: "টিয়ার সিস্টেম",
+    your_tier: "আপনার বর্তমান টিয়ার",
+    queue_pos: "কিউতে অবস্থান:",
+    pool_members: "পুল সদস্য:",
+    your_seats: "আপনার আসন:",
+    spin_ready: "স্পিন প্রস্তুত!",
+    spin_btn: "এখনই স্পিন করুন",
+    tickets: "টিকিট",
+    back: "পিছনে",
+    day: "দিন",
+    each: "প্রতিটি",
+    tasks: "কাজ",
+    tier: "টিয়ার",
+    top_performer: "সেরা পারফর্মার",
+    estimated_prize: "আনুমানিক পুরস্কার",
+    no_referrals: "এখনও কোন রেফারেল নেই। আপনার লিঙ্ক শেয়ার করুন!",
+    task_done: "কাজ সম্পন্ন!",
+    welcome_bonus: "স্বাগতম বোনাস",
+    referral_applied: "রেফারেল বোনাস প্রয়োগ করা হয়েছে",
+    referral_from: "থেকে রেফারেল বোনাস",
+    coins: "কয়েন",
+    announcement: "ঘোষণা",
+    milestone: "মাইলফলক",
+    reminder: "অনুস্মারক",
+    prize_1: "iPhone 15 Pro",
+    prize_2: "Studio Headphones",
+    prize_3: "AirPods Pro",
+    prize_4: "₹5,000 Voucher",
+    prize_5: "₹2,000 Voucher",
+    task_walk: "সকালবেলা হাঁটা 🚶 (১০ মিনিট)",
+    task_read: "১০ পাতা পড়ুন 📖",
+    task_water: "৮ গ্লাস জল পান করুন 💧",
+    task_journal: "ডায়েরি লেখা ✍️ (৫ মিনিট)",
+    task_meditation: "১০ মিনিট ধ্যান 🧘",
+    task_exercise: "বিকেলের ব্যায়াম 🏋️ (১৫ মিনিট)",
+    task_social: "১ ঘণ্টা সোশ্যাল মিডিয়া বন্ধ 📵",
+    task_meal: "স্বাস্থ্যকর খাবার খান 🥗",
+    task_sleep: "রাত ১১টার মধ্যে ঘুমান 😴",
+    task_gratitude: "একটি কৃতজ্ঞতা নোট লিখুন 🙏"
+  }
+};
+
+function translateApp() {
+  const lang = state.currentUser?.lang || state.selectedLang || 'en';
+  const dict = I18N[lang] || I18N['en'];
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = dict[key];
+      } else {
+        el.innerText = dict[key];
+      }
+
+      if (el.hasAttribute('title')) {
+        el.setAttribute('title', dict[key]);
+      }
+    }
+  });
+}
+
+function t(key) {
+  const lang = state.currentUser?.lang || state.selectedLang || 'en';
+  return I18N[lang]?.[key] || I18N['en']?.[key] || key;
+}
+
+
+function getAvatarUrl(u) {
+  if (!u) return CONFIG.AVATARS[0].url;
+  const photo = u.avatarPhoto || u.photoUrl;
+  if (photo) return photo;
+  const av = CONFIG.AVATARS.find(a => a.id === u.avatar);
+  if (av) return av.url;
+  if (u.avatar && u.avatar.startsWith('http')) return u.avatar;
+  return CONFIG.AVATARS[0].url;
+}
+
+const VIDEOS = [
+  { icon: '🎬', title: 'Getting Started', desc: 'Learn the basics', duration: '4 min', level: 'Beginner', url: 'https://www.youtube.com/@grow31-u3s' },
+  { icon: '🏆', title: 'Win Strategies', desc: 'Maximize earnings', duration: '5 min', level: 'Intermediate', url: 'https://www.youtube.com/@grow31-u3s' },
+  { icon: '💰', title: 'Earn More Coins', desc: 'Advanced tips', duration: '6 min', level: 'Advanced', url: 'https://www.youtube.com/@grow31-u3s' },
+  { icon: '📅', title: 'Daily Routine', desc: 'Stay on track', duration: '3 min', level: 'Beginner', url: 'https://www.youtube.com/@grow31-u3s' }
+];
+
+// ═══════════════════════════════════════════════════════
+// SPLASH
+// ═══════════════════════════════════════════════════════
+function goHome() {
+  const splash = document.getElementById('splashView');
+  if (splash) splash.style.display = 'none';
+
+  if (state.currentUser) {
+    // Force reset to home tab for dashboard
+    DB.set('lastDashPage', 'pageHome');
+    state.currentView = 'dashView';
+    DB.set('lastView', 'dashView');
+    showView('dashView');
+
+    // Explicitly switch the tab UI to Home (using the correct ID 'pageHome')
+    if (typeof showDashPage === 'function') {
+      showDashPage('pageHome');
+    }
+
+    setTimeout(renderDash, 10);
+  } else {
+    // For guests, clicking logo should at least take them to Auth/Login
+    showView('authView');
+  }
+}
+
+window.addEventListener('load', () => {
+  restoreSession();
+  prefillReferralFromUrl();
+  const splash = document.getElementById('splashView');
+  if (state.currentUser) {
+    // Instant skip for logged in users
+    if (splash) splash.style.display = 'none';
+    loginSuccess();
+    initRealtimeSync();
+    if (window.lucide) lucide.createIcons();
+  } else {
+    // Normal flow for guests
+    setTimeout(() => {
+      if (splash) splash.classList.add('hidden');
+      setTimeout(() => {
+        if (splash) splash.style.display = 'none';
+        showView('authView');
+
+        if (window.lucide) lucide.createIcons();
+      }, 600);
+    }, 2700);
+  }
+});
+
+function initRealtimeSync() {
+  const u = state.currentUser;
+  if (!u) return;
+  const ni = document.getElementById('usernameInput');
+  const cs = document.getElementById('countrySelect');
+  const ls = document.getElementById('langSelect');
+
+  if (ni) ni.addEventListener('input', (e) => { u.username = e.target.value; saveData(); });
+  if (cs) cs.addEventListener('change', (e) => { u.country = e.target.value; saveData(); });
+  if (ls) ls.addEventListener('change', (e) => { u.lang = e.target.value; saveData(); });
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+let tempPhone = "";
+let otpTimerInterval = null;
+
+function startOTPTimer() {
+  let secs = 60;
+  const countdown = document.getElementById('otpCountdown');
+  const timerEl = document.getElementById('otpResendTimer');
+  const resendBtn = document.getElementById('otpResendBtn');
+  if (timerEl) timerEl.style.display = 'inline';
+  if (resendBtn) resendBtn.classList.remove('visible');
+  if (otpTimerInterval) clearInterval(otpTimerInterval);
+  otpTimerInterval = setInterval(() => {
+    secs--;
+    if (countdown) countdown.innerText = secs;
+    if (secs <= 0) {
+      clearInterval(otpTimerInterval);
+      if (timerEl) timerEl.style.display = 'none';
+      if (resendBtn) resendBtn.classList.add('visible');
+    }
+  }, 1000);
+}
+
+let tempUsername = '';
+let tempPassword = '';
+let authMode = 'signup'; // 'signup' or 'login'
+
+function toggleAuthMode() {
+  const heading = document.getElementById('authHeading');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const toggleText = document.getElementById('authToggleText');
+  const toggleBtn = document.getElementById('authToggleBtn');
+  const phoneGroup = document.getElementById('phoneInputGroup');
+
+  if (authMode === 'signup') {
+    authMode = 'login';
+    if (heading) heading.innerText = 'Welcome Back! 👋';
+    if (submitBtn) submitBtn.querySelector('span').innerText = 'Login Now';
+    if (toggleText) toggleText.innerText = "Don't have an account?";
+    if (toggleBtn) toggleBtn.innerText = 'Sign Up';
+    if (phoneGroup) phoneGroup.style.display = 'none';
+  } else {
+    authMode = 'signup';
+    if (heading) heading.innerText = 'Get Started 🚀';
+    if (submitBtn) submitBtn.querySelector('span').innerText = 'Get Started';
+    if (toggleText) toggleText.innerText = 'Already have an account?';
+    if (toggleBtn) toggleBtn.innerText = 'Login';
+    if (phoneGroup) phoneGroup.style.display = 'block';
+  }
+}
+
+function handleAuth() {
+  const user = document.getElementById('usernameInput')?.value?.trim() || '';
+  const pass = document.getElementById('passwordInput')?.value?.trim() || '';
+  const phone = document.getElementById('phoneInput')?.value?.trim() || '';
+
+  if (!user || user.length < 3) return showToast("Username must be at least 3 characters", "error");
+
+  // Strong password validation: min 8 chars, at least one letter and one number
+  const passRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+  if (!pass || !passRegex.test(pass)) {
+    return showToast("Password must be 8+ characters with letters & numbers", "error");
+  }
+
+  if (authMode === 'login') {
+    const existingUser = Object.values(state.allUsers).find(u => u.username?.toLowerCase() === user.toLowerCase());
+    if (existingUser) {
+      if (existingUser.password === pass) {
+        state.currentUser = existingUser;
+        DB.set('currentUserPhone', existingUser.phone);
+        loginSuccess(); // Now correctly handles T&C, Payment, Profile, and UI Rendering
+        showToast("Welcome back, " + user + "!", "success");
+      } else {
+        return showToast("Incorrect password", "error");
+      }
+    } else {
+      return showToast("Username not found. Please Sign Up.", "error");
+    }
+  } else {
+    // Signup Mode
+    if (phone.length < 10 || !/^\d+$/.test(phone)) return showToast("Enter valid 10-digit number", "error");
+
+    const existingByUsername = Object.values(state.allUsers).find(u => u.username?.toLowerCase() === user.toLowerCase());
+    if (existingByUsername) return showToast("Username already taken", "error");
+
+    const existingByPhone = state.allUsers[phone];
+    if (existingByPhone) return showToast("Account already exists with this phone", "error");
+
+    tempUsername = user;
+    tempPassword = pass;
+    tempPhone = phone;
+    proceedWithOTP();
+  }
+}
+
+function proceedWithOTP() {
+  const stepPhone = document.getElementById('stepPhone');
+  const stepOTP = document.getElementById('stepOTP');
+  const otpPhoneDisplay = document.getElementById('otpPhoneDisplay');
+
+  if (stepPhone) stepPhone.style.display = 'none';
+  if (stepOTP) stepOTP.style.display = 'block';
+  if (otpPhoneDisplay) otpPhoneDisplay.innerText = tempPhone;
+  startOTPTimer();
+  showToast("OTP sent to +91 " + tempPhone, "success");
+}
+
+function goBackToPhone() {
+  const stepPhone = document.getElementById('stepPhone');
+  const stepOTP = document.getElementById('stepOTP');
+  if (otpTimerInterval) clearInterval(otpTimerInterval);
+  if (stepOTP) stepOTP.style.display = 'none';
+  if (stepPhone) stepPhone.style.display = 'block';
+}
+
+function resendOTP() {
+  startOTPTimer();
+  showToast("OTP resent to +91 " + tempPhone, "success");
+}
+
+function verifyOTP() {
+  const otpInput = document.getElementById('otpInput');
+  const otp = otpInput?.value?.trim() || '';
+  if (otp.length !== 6 || !/^\d+$/.test(otp)) return showToast("Enter valid 6-digit OTP", "error");
+
+  // Hide OTP step immediately so it cannot reappear during transitions
+  const stepOTP = document.getElementById('stepOTP');
+  if (stepOTP) stepOTP.style.display = 'none';
+
+  // Set user state early if they exist
+  if (state.allUsers[tempPhone]) {
+    state.currentUser = state.allUsers[tempPhone];
+    DB.set('currentUserPhone', tempPhone);
+  }
+
+  // Show T&C one-time after OTP but before finishing signup
+  if (!state.sessionTermsAccepted && !DB.get('termsAccepted', false)) {
+    showView('termsView');
+    return;
+  }
+
+  proceedPostOTP();
+}
+
+function proceedPostOTP() {
+  // Show Referral screen for new users OR existing users who haven't paid yet
+  if (state.currentUser && state.currentUser.hasPaid) {
+    loginSuccess();
+  } else {
+    showView('authView');
+    const stepOTP = document.getElementById('stepOTP');
+    const stepReferral = document.getElementById('stepReferral');
+    const stepPhone = document.getElementById('stepPhone');
+    if (stepPhone) stepPhone.style.display = 'none';
+    if (stepOTP) stepOTP.style.display = 'none';
+    if (stepReferral) stepReferral.style.display = 'block';
+    fillReferralInputIfNeeded();
+  }
+}
+
+// Global tier queue counter
+function getNextTierPosition() {
+  const totalUsers = Object.keys(state.allUsers).length;
+  return totalUsers + 1; // sequential position
+}
+
+function getQueuePositionForTier(tierNum) {
+  return Math.max(1, Math.min(CONFIG.MAX_TIERS, CONFIG.MAX_TIERS + 1 - Math.max(1, Math.min(CONFIG.MAX_TIERS, tierNum))));
+}
+
+// Assign tier based on position: position 1 = Tier 31, position 2 = Tier 30, ..., position 31 = Tier 1
+function positionToTierName(pos) {
+  const normalized = Math.max(1, Math.min(CONFIG.MAX_TIERS, pos));
+  return CONFIG.MAX_TIERS + 1 - normalized;
+}
+
+function completeSignup() {
+  const uid = 'u' + Date.now();
+  const refCodeInput = document.getElementById('refCodeInput');
+  const inviteCode = (refCodeInput?.value?.trim()?.toUpperCase() || pendingReferralCode || '').trim();
+
+  // Auto-assign tier position
+  const queuePos = getNextTierPosition();
+  const nextTierIndex = getGlobalOccupiedTiers() + 1;
+  const tierNum = getTierByIndex(nextTierIndex);
+
+  // Use the username from auth step if provided, else fallback to Grower####
+  const finalUsername = tempUsername || ('Grower' + uid.slice(-4));
+  const finalPassword = tempPassword || '';
+
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  const refCode = 'Grow31/' + finalUsername + '-' + randomNum;
+
+  const newUser = {
+    id: uid,
+    phone: tempPhone,
+    username: finalUsername,
+    password: finalPassword,
+    hasPaid: false, profileComplete: false,
+    coins: 100, streak: 0, day: 1, refCode, referrals: 0,
+    referralList: [], // list of referred user ids
+    avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=' + uid, lang: state.selectedLang || 'en', country: 'IN',
+    tasks: initTasks(), claimedRewards: [],
+    followedSocials: [], checkedInToday: false, lastCheckIn: '',
+    tier: tierNum, queuePosition: getQueuePositionForTier(tierNum),
+    ownedTiers: [tierNum],
+    spinTickets: 3, spinTokens: 0,
+    tiersOwned: 1, tiersPurchased: 0, tiersClaimed: 0, investment: 0,
+    joinedAt: Date.now(),
+    needsWelcomeCoins: true,
+    payoutStatus: 'pending',
+    txHistory: [{ type: 'signup', coins: 100, desc: 'Welcome bonus', time: Date.now() }]
+  };
+
+  if (inviteCode) {
+    Object.values(state.allUsers).forEach(u => {
+      if (u.refCode === inviteCode || u.refCode === inviteCode.replace('GROW31/', 'Grow31/')) {
+        const refCoins = getTierCoinsPerReferral(u.tier || 1);
+        u.referrals += 1;
+        u.coins += refCoins;
+        if (!u.referralList) u.referralList = [];
+        u.referralList.push({ id: uid, name: newUser.username, time: Date.now() });
+        if (!u.txHistory) u.txHistory = [];
+        u.txHistory.unshift({ type: 'referral', coins: refCoins, desc: 'Referral bonus from ' + newUser.username, time: Date.now() });
+        newUser.coins += 50;
+        newUser.txHistory.unshift({ type: 'referral', coins: 50, desc: 'Referral bonus applied', time: Date.now() });
+      }
+    });
+  }
+
+  state.allUsers[tempPhone] = newUser;
+  state.currentUser = newUser;
+  DB.set('currentUserPhone', tempPhone);
+  saveData();
+  loginSuccess();
+}
+
+function loginSuccess() {
+  const u = state.currentUser;
+  if (!u) return showView('authView');
+
+  // 1. Mandatory T&C check
+  if (!state.sessionTermsAccepted && !DB.get('termsAccepted', false)) {
+    showView('termsView');
+    return;
+  }
+
+  // 2. Payment check
+  if (!u.hasPaid) {
+    state.pendingPayment = { qty: 1, total: getNextTierPrice() };
+    showView('paymentView');
+    return;
+  }
+
+  // 3. Profile Setup check (Now optional, user can do from dashboard to earn coins)
+  /*
+  if (!u.profileComplete) {
+    showView('profileSetupView');
+    return;
+  }
+  */
+
+  // 4. Final Destination: Dashboard or Persisted View
+  const lastView = DB.get('lastView');
+
+  // Task Migration for translation keys
+  if (u.tasks && u.tasks.length > 0 && !u.tasks[0].titleKey) {
+    u.tasks = initTasks(); // Re-init to get keys
+    saveData();
+  }
+
+  const ignoreViews = ['authView', 'splashView', 'termsView', 'paymentView', 'profileSetupView'];
+  if (lastView && !ignoreViews.includes(lastView)) {
+    showView(lastView);
+    // Extra initialization if the restored view is the dashboard
+    if (lastView === 'dashView') {
+      const lastPage = DB.get('lastDashPage', 'pageHome');
+      showDashPage(lastPage);
+    } else if (lastView === 'winnersView') {
+      renderWinners();
+      startCountdownTimers();
+    }
+  } else {
+    const lastPage = DB.get('lastDashPage', 'pageHome');
+    showDashPage(lastPage);
+  }
+  renderDash();
+  translateApp();
+}
+
+// ═══════════════════════════════════════════════════════
+// TERMS TABS
+// ═══════════════════════════════════════════════════════
+function switchTermsTab(id, btn) {
+  ['tc', 'privacy', 'refund'].forEach(t => {
+    const p = document.getElementById('tpanel-' + t);
+    if (p) {
+      p.classList.remove('active');
+      p.style.display = 'none';
+      p.classList.add('collapsed');
+    }
+  });
+  document.querySelectorAll('#termsView .terms-tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tpanel-' + id);
+  if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
+  if (btn) btn.classList.add('active');
+  const rm = document.getElementById('termsReadMore');
+  if (rm) rm.style.display = 'block';
+}
+
+function acceptTerms() {
+  if (!document.getElementById('termsCheck').checked) return showToast("Accept terms to continue", "error");
+  state.sessionTermsAccepted = true;
+  DB.set('termsAccepted', true);
+
+  // Proceed to dashboard, referral, or payment flow
+  if (state.currentUser || (typeof tempPhone !== 'undefined' && tempPhone.length === 10)) {
+    proceedPostOTP();
+  } else {
+    showView('authView');
+  }
+}
+
+function expandTerms(btn) {
+  document.querySelectorAll('#termsView .terms-body').forEach(el => el.classList.remove('collapsed'));
+  if (btn && btn.parentElement) btn.parentElement.style.display = 'none';
+}
+
+function switchTermsTab2(id, btn) {
+  ['tc2', 'privacy2', 'refund2'].forEach(t => {
+    const p = document.getElementById('tpanel-' + t);
+    if (p) {
+      p.classList.remove('active');
+      p.style.display = 'none';
+      p.classList.add('collapsed');
+    }
+  });
+  document.querySelectorAll('#termsView2 .terms-tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tpanel-' + id);
+  if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
+  if (btn) btn.classList.add('active');
+  const rm = document.getElementById('termsReadMore2');
+  if (rm) rm.style.display = 'block';
+}
+
+function expandTerms2(btn) {
+  document.querySelectorAll('#termsView2 .terms-body').forEach(el => el.classList.remove('collapsed'));
+  if (btn && btn.parentElement) btn.parentElement.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+// PAYMENT
+// ═══════════════════════════════════════════════════════
+function processPayment() {
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  document.getElementById('payBtnText').innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite"></span> Processing...';
+
+  showToast('Demo payment processing...', 'success');
+  setTimeout(() => {
+    showView('confirmView');
+    simulateConfirm();
+  }, 800);
+}
+
+function updatePaymentView() {
+  const btn = document.getElementById('payBtn');
+  if (btn) { btn.disabled = false; }
+  const priceDisplay = document.getElementById('paymentPriceDisplay');
+  const priceMeta = document.getElementById('paymentPriceMeta');
+  const btnText = document.getElementById('payBtnText');
+  const pending = state.pendingPayment || { qty: 1, total: getNextTierPrice(), plan: getTierPurchasePlan(1) };
+  state.pendingPayment = pending;
+  const plan = pending.plan || getTierPurchasePlan(pending.qty);
+
+  if (priceDisplay) priceDisplay.innerText = '₹' + pending.total;
+  if (priceMeta) {
+    const prices = plan.tiers.map(item => item.price);
+    if (new Set(prices).size === 1) {
+      priceMeta.innerText = pending.qty + ' tier' + (pending.qty > 1 ? 's' : '') + ' @ ₹' + prices[0] + ' each';
+    } else {
+      priceMeta.innerText = prices.map(p => '₹' + p).join(' + ') + ' = ₹' + pending.total;
+    }
+  }
+  if (btnText) btnText.innerText = 'Pay ₹' + pending.total + ' for ' + pending.qty + ' tier' + (pending.qty > 1 ? 's' : '') + ' →';
+
+  showPaymentWithTierInfo();
+}
+
+function simulateConfirm() {
+  const spinner = document.getElementById('confirmSpinner');
+  const success = document.getElementById('confirmSuccess');
+  const msg = document.getElementById('confirmMsg');
+  spinner.style.display = 'block';
+  success.style.display = 'none';
+  msg.innerText = 'Processing your demo payment...';
+
+  setTimeout(() => {
+    msg.innerText = 'Verifying payment...';
+  }, 800);
+  setTimeout(() => {
+    spinner.style.display = 'none';
+    success.style.display = 'block';
+    msg.style.display = 'none';
+    const pending = state.pendingPayment || { qty: 1 };
+    const u = state.currentUser || {};
+    const totalTiers = (u.tiersOwned || 1) + pending.qty;
+    const confirmDetails = document.getElementById('confirmDetails');
+    if (confirmDetails) {
+      confirmDetails.innerText = 'You will have ' + totalTiers + ' tier' + (totalTiers > 1 ? 's' : '') + ' after this purchase.';
+    }
+  }, 2200);
+}
+
+function afterPayment() {
+  const btnText = document.getElementById('confirmDetails');
+  const qty = state.pendingPayment?.qty || 1;
+  const u = state.currentUser;
+  if (!u) {
+    return showView('authView');
+  }
+  const plan = state.pendingPayment?.plan || getTierPurchasePlan(qty);
+  const paidAmount = state.pendingPayment?.total || (qty * getNextTierPrice());
+  u.hasPaid = true;
+  u.tiersOwned = (u.tiersOwned || 0) + qty;
+  u.tiersPurchased = (u.tiersPurchased || 0) + qty;
+  u.tiersClaimed = (u.tiersClaimed || 0) + qty;
+  u.investment = (u.investment || 0) + paidAmount;
+  if (!u.ownedTiers) u.ownedTiers = [u.tier || 1];
+  plan.tiers.forEach(item => u.ownedTiers.push(item.tier));
+  u.tier = Math.max(...u.ownedTiers);
+  u.queuePosition = getQueuePositionForTier(u.tier);
+  state.isBuyingSlots = false;
+  if (!u.txHistory) u.txHistory = [];
+  u.txHistory.unshift({ type: 'purchase', amount: paidAmount, desc: 'Tier purchase', time: Date.now() });
+  saveData();
+  state.allUsers[u.phone] = u; // Explicitly update map
+  state.pendingPayment = null;
+  if (btnText) {
+    btnText.innerText = 'You now have ' + u.tiersOwned + ' tier' + (u.tiersOwned > 1 ? 's' : '') + ' in your pool.';
+  }
+  showToast('Purchase complete! Total tiers: ' + u.tiersOwned + ' · Invested ₹' + u.investment, 'success');
+  loginSuccess();
+}
+
+// ═══════════════════════════════════════════════════════
+// PROFILE SETUP
+// ═══════════════════════════════════════════════════════
+
+// Fix emoji dialog grid
+document.addEventListener('DOMContentLoaded', () => {
+  const d = document.getElementById('emojiDialog');
+  if (d) {
+    const inner = d.querySelector('.dialog');
+    const g = document.createElement('div');
+    g.style.cssText = 'display:grid;grid-template-columns:repeat(6,1fr);gap:8px';
+    inner.appendChild(g);
+  }
+});
+
+function saveProfile() {
+  const uname = document.getElementById('usernameInput').value.trim();
+  if (!uname) return showToast("Enter a username", "error");
+  if (uname.length < 3) return showToast("Username too short", "error");
+
+  const u = state.currentUser;
+  u.username = uname;
+  // u.avatar is now managed by selectAvatar/generateRandomAvatar directly
+  u.country = document.getElementById('countrySelect').value;
+  u.lang = document.getElementById('langSelect').value;
+  u.profileComplete = true;
+  u.coins += 5; // New reward: 5 coins for completing profile
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  u.refCode = 'Grow31/' + uname + '-' + randomNum;
+  if (!u.txHistory) u.txHistory = [];
+  u.txHistory.unshift({ type: 'profile', coins: 5, desc: 'Profile completion reward', time: Date.now() });
+  saveData();
+  showToast('Profile updated! Reward: +5 coins', 'success');
+  state.allUsers[u.phone] = u;
+  loginSuccess();
+}
+
+function skipProfile() {
+  const u = state.currentUser;
+  if (u) {
+    u.profileComplete = true;
+    saveData();
+  }
+  loginSuccess();
+}
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+let currentDashPage = 'pageHome';
+
+function showDashPage(pageId = 'pageHome') {
+  showView('dashView', false); // Ensure parent view is visible
+  ['pageHome', 'pageTasks', 'pageTiers', 'pageSpin', 'pageReels', 'pageLeader', 'pageMore', 'pageQuiz'].forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.style.display = 'none';
+  });
+  const pageEl = document.getElementById(pageId);
+  if (!pageEl) return;
+  pageEl.style.display = 'block';
+  pageEl.scrollTop = 0;
+  currentDashPage = pageId;
+  DB.set('lastDashPage', pageId);
+
+  // Update nav
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { pageHome: 'navHome', pageTasks: 'navTasks', pageTiers: 'navTiers', pageSpin: 'navSpin', pageReels: 'navReels', pageLeader: 'navMore', pageMore: 'navMore', pageQuiz: 'navTasks' };
+  const navId = map[pageId];
+  if (navId) document.getElementById(navId)?.classList.add('active');
+
+  if (pageId === 'pageSpin') {
+    initSpinWheel();
+    startSpinLiveRefresh(); // Calls renderSpinLeaderboard + renderSpinRecords now, then every 10s
+  } else {
+    stopSpinLiveRefresh();
+  }
+  if (pageId === 'pageTiers') renderTiers();
+  if (pageId === 'pageLeader') renderLeaderboard(Object.values(state.allUsers).sort((a, b) => b.coins - a.coins));
+  if (pageId === 'pageMore') renderMore();
+  if (pageId === 'pageHome') renderDash();
+  if (pageId === 'pageQuiz') renderQuiz();
+  if (pageId === 'pageTasks') renderTasksPage();
+  if (pageId === 'pageReels') renderReels();
+
+  startCountdownTimers();
+  syncFixedBarHeights();
+  updateMobileBackBtn();
+  if (window.lucide) lucide.createIcons();
+  translateApp();
+}
+
+function renderDash() {
+  const u = state.currentUser;
+  if (!u) return;
+
+  // Header
+  document.getElementById('headerCoins').innerText = u.coins.toLocaleString();
+
+  if (u.needsWelcomeCoins) {
+    u.needsWelcomeCoins = false;
+    saveData();
+    setTimeout(() => {
+      const dummy = document.createElement('div');
+      dummy.style.position = 'fixed';
+      dummy.style.left = '50%';
+      dummy.style.top = '50%';
+      document.body.appendChild(dummy);
+      animateCoins(dummy, 25);
+      setTimeout(() => dummy.remove(), 2000);
+    }, 800);
+  }
+  document.getElementById('userName').innerText = u.username;
+  document.getElementById('userDay').innerText = u.day;
+  updateAvatarDisplays();
+  document.getElementById('homeRefCode').innerText = u.refCode;
+  const homeRefCoinsEl = document.getElementById('homeRefCoins');
+  if (homeRefCoinsEl) homeRefCoinsEl.innerText = '+' + getTierCoinsPerReferral(u.tier || 1) + ' coins';
+
+  // Stats
+  document.getElementById('statStreak').innerText = u.streak;
+  const sorted = Object.values(state.allUsers).sort((a, b) => b.coins - a.coins);
+  const rank = sorted.findIndex(x => x.id === u.id) + 1;
+  document.getElementById('statRank').innerText = '#' + rank;
+
+  // Profile completion card
+  const pCard = document.getElementById('completeProfileCard');
+  if (u.profileComplete) { pCard.style.display = 'none'; }
+  else { pCard.style.display = 'flex'; }
+
+  // Mini tasks
+  const mini = document.getElementById('miniTasksList');
+  const todayTasks = u.tasks.filter(t => t.day === u.day).slice(0, 2);
+  mini.innerHTML = todayTasks.map(t => `
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:.88rem">
+  <span>${t.done ? '✅ ' : ''}<span style="${t.done ? 'opacity:.5' : ''};">${t.title}</span></span>
+  <span style="color:#FFD700;font-weight:700;font-size:.8rem">${t.done ? 'Done' : '+' + t.reward + ' G'}</span>
+</div>
+`).join('');
+
+  // Home day grid
+  const g = document.getElementById('homeGrid');
+  if (g) {
+    g.innerHTML = '';
+    for (let i = 1; i <= 31; i++) {
+      let cls = i < u.day ? 'day-past' : i === u.day ? 'day-current' : 'day-future';
+      g.innerHTML += `<div class="day-cell ${cls}">${i}</div>`;
+    }
+  }
+
+  // Gamified element
+  const gamCoins = document.getElementById('gamifiedCoins');
+  if (gamCoins) gamCoins.innerText = u.coins.toLocaleString();
+  const homeFill = document.getElementById('homeProgressFill');
+  if (homeFill) homeFill.style.width = Math.max(3, Math.round((u.day / 31) * 100)) + '%';
+  const homeDay = document.getElementById('homeProgressDay');
+  if (homeDay) homeDay.innerText = u.day;
+
+  // Spin coins display
+  if (document.getElementById('spinCoins')) document.getElementById('spinCoins').innerText = u.coins.toLocaleString();
+  if (document.getElementById('spinTickets')) document.getElementById('spinTickets').innerText = u.spinTickets || 0;
+  if (document.getElementById('followCoins')) document.getElementById('followCoins').innerText = u.coins.toLocaleString();
+
+  // Sticky rank bar
+  updateRankBar(u, rank);
+
+
+
+  renderTasksPage();
+  startCountdownTimers();
+  syncFixedBarHeights();
+  updateMobileBackBtn();
+}
+
+function updateRankBar(u, rank) {
+  const r = rank || '—';
+  const el = id => document.getElementById(id);
+  // Avatar is already updated by updateAvatarDisplays in callers like renderDash
+  if (el('rankBarName')) el('rankBarName').innerText = u.username;
+  if (el('rankBarTier')) el('rankBarTier').innerText = u.tier || 1;
+  if (el('rankBarDay')) el('rankBarDay').innerText = u.day;
+  if (el('rankBarRank')) el('rankBarRank').innerText = '#' + r;
+  if (el('rankBarCoins')) el('rankBarCoins').innerText = u.coins.toLocaleString();
+}
+
+function renderTasksPage() {
+  const u = state.currentUser;
+  const el = document.getElementById('taskDayNum');
+  if (el) el.innerText = u.day;
+
+  const c = document.getElementById('tasksList');
+  if (!c) return;
+  c.innerHTML = '';
+
+  const todayTasks = u.tasks.filter(t_item => t_item.day === u.day);
+  const doneCount = todayTasks.filter(t => t.done).length;
+  const totalCoins = todayTasks.reduce((s, t) => s + t.reward, 0);
+  const earnedCoins = todayTasks.filter(t => t.done).reduce((s, t) => s + t.reward, 0);
+
+  // Day header with difficulty summary
+  const hardCount = todayTasks.filter(t => t.difficulty === 'hard').length;
+  const diffLabel = u.day <= 10 ? '🟢 Beginner Week' : u.day <= 20 ? '🟡 Intermediate Phase' : '🔴 Advanced Sprint';
+  c.innerHTML = `
+  <div style="background:linear-gradient(135deg,rgba(68,138,255,0.10),rgba(206,147,216,0.06));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <p style="font-weight:800;font-size:.95rem;margin-bottom:2px">Day ${u.day} Tasks ${diffLabel}</p>
+      <p class="text-xs text-muted">${doneCount}/${todayTasks.length} done · ${hardCount} hard task${hardCount !== 1 ? 's' : ''} today</p>
+    </div>
+    <div style="text-align:right">
+      <p style="font-weight:800;font-size:1.1rem;color:#FFD700"><span class="g-coin"></span> ${earnedCoins}/${totalCoins}</p>
+      <p class="text-xs text-muted">coins earned</p>
+    </div>
+  </div>`;
+
+  todayTasks.forEach(t_item => {
+    const cat = TASK_CATEGORIES[t_item.category] || { label: 'Task', icon: '⭐', color: '#fff', badgeClass: 'badge-gray' };
+    const diff = TASK_DIFFICULTY[t_item.difficulty] || { label: 'Easy', reward: 5, color: '#00e676' };
+    const div = document.createElement('div');
+    div.className = `task-item${t_item.done ? ' done' : ''}`;
+    div.style.cssText = 'padding:14px 16px;border-radius:14px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;';
+    if (t_item.done) div.style.opacity = '0.6';
+    div.onclick = (e) => completeTask(t_item.id, e.currentTarget);
+    const title = t_item.title;
+    div.innerHTML = `
+  <div style="display:flex;align-items:flex-start;gap:12px">
+    <div style="width:38px;height:38px;border-radius:10px;background:${cat.color}18;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${cat.icon}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+        <span class="badge ${cat.badgeClass}" style="font-size:.6rem;padding:2px 6px">${cat.label}</span>
+        <span class="badge" style="font-size:.6rem;padding:2px 6px;background:${diff.color}22;color:${diff.color};border:1px solid ${diff.color}44">${diff.label}</span>
+      </div>
+      <p style="font-weight:${t_item.difficulty === 'hard' ? '700' : '500'};font-size:.9rem;line-height:1.3">${t_item.done ? '✅ ' : ''}${title}</p>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-weight:800;font-size:.95rem;color:${diff.color}">+${t_item.reward}</div>
+      <div class="text-xs text-muted" style="font-size:.65rem">G-coins</div>
+    </div>
+  </div>`;
+    c.appendChild(div);
+  });
+
+  const g = document.getElementById('dayGrid');
+  if (g) {
+    g.innerHTML = '';
+    for (let i = 1; i <= 31; i++) {
+      let cls = i < u.day ? 'day-past' : i === u.day ? 'day-current' : 'day-future';
+      g.innerHTML += `<div class="day-cell ${cls}">${i}</div>`;
+    }
+  }
+}
+
+function completeTask(tid, el) {
+  const task = state.currentUser.tasks.find(x => x.id === tid);
+  if (!task || task.done) return;
+  task.done = true;
+  task.completedAt = new Date().toISOString(); // Backend: POST /api/tasks/complete { taskId, userId, completedAt }
+  state.currentUser.coins += task.reward;
+  state.currentUser.txHistory.unshift({ type: 'task', coins: task.reward, desc: 'Task: ' + task.title, time: Date.now() });
+  if (el) animateCoins(el, task.reward);
+  saveData();
+
+  // Difficulty-based celebration
+  const msgs = { easy: '✅ Done! ', medium: '💪 Great job! ', hard: '🔥 Impressive! ' };
+  const prefix = msgs[task.difficulty] || '✅ ';
+  showToast(`${prefix}+${task.reward} G-Coins`, task.difficulty === 'hard' ? 'success' : '');
+
+  // All-tasks-done streak bonus
+  const todayTasks = state.currentUser.tasks.filter(t => t.day === state.currentUser.day);
+  const allDone = todayTasks.every(t => t.done);
+  if (allDone) {
+    const bonus = 30;
+    state.currentUser.coins += bonus;
+    state.currentUser.txHistory.unshift({ type: 'bonus', coins: bonus, desc: '🏆 All tasks complete! Daily bonus', time: Date.now() });
+    if (el) animateCoins(el, bonus);
+    saveData();
+    setTimeout(() => showToast(`🏆 All tasks done! Bonus +${bonus} G-Coins earned!`, 'success'), 800);
+  }
+
+  renderDash();
+  // Re-render tasks page if visible
+  if (document.getElementById('pageTasks')?.style.display !== 'none') renderTasksPage();
+}
+
+
+function renderReels() {
+  // Initialize reels functionality
+  initReels();
+}
+
+function renderMore() {
+  const u = state.currentUser;
+  if (!u) return;
+  const perksCoinsEl = document.getElementById('perksCoins');
+  if (perksCoinsEl) perksCoinsEl.innerText = u.coins.toLocaleString();
+  const perksRefCountEl = document.getElementById('perksRefCount');
+  if (perksRefCountEl) perksRefCountEl.innerText = (u.referrals || 0) + ' refs';
+  document.getElementById('moreUsername').innerText = u.username;
+  document.getElementById('morePhone').innerText = '+91 ' + u.phone;
+  document.getElementById('moreCoins').innerText = u.coins.toLocaleString();
+  document.getElementById('moreTier').innerText = u.tier || 1;
+  document.getElementById('moreRefCount').innerText = u.referrals;
+  updateAvatarDisplays();
+  const refLink = document.getElementById('moreRefLink');
+  if (refLink) refLink.innerText = u.refCode || 'Grow31/' + u.username;
+
+  const countryMap = { 'IN': '🇮🇳 India', 'US': '🇺🇸 United States', 'UK': '🇬🇧 United Kingdom', 'AE': '🇦🇪 UAE', 'SG': '🇸🇬 Singapore' };
+  const langMap = { 'en': 'English', 'hi': 'हिंदी', 'ta': 'தமிழ்', 'te': 'తెలుగు', 'bn': 'বাংলা' };
+  document.getElementById('moreCountry').innerText = (countryMap[u.country] || '🇮🇳 India') + ' ›';
+  document.getElementById('moreLang').innerText = (langMap[u.lang] || 'English') + ' ›';
+}
+
+function renderLeaderboard(sorted) {
+  const c = document.getElementById('leaderboardList');
+  if (!c) return;
+  const u = state.currentUser;
+  const userRank = sorted.findIndex(x => x.id === u.id) + 1;
+  c.innerHTML = `<div class="card-header"><div class="card-title">🏆 Top Players · Your Rank: #${userRank}</div></div>`;
+  sorted.slice(0, 15).forEach((usr, i) => {
+    const isMe = usr.id === u.id;
+    const finalPhoto = getAvatarUrl(usr);
+    const bgSize = finalPhoto.includes('dicebear.com') ? 'contain' : 'cover';
+    const avHtml = `<div class="avatar-sleek" style="width:36px;height:36px;background-image:url('${finalPhoto}');background-size:${bgSize};background-position:center;background-repeat:no-repeat;background-color:rgba(255,255,255,0.08);border:none;flex-shrink:0"></div>`;
+
+    c.innerHTML += `
+  <div class="list-item" style="${isMe ? 'background:rgba(68,138,255,0.08);border-left:3px solid #448aff;' : ''}">
+    <div style="font-weight:800;font-size:.8rem;color:rgba(255,255,255,0.3);width:20px">${i + 1}</div>
+    ${avHtml}
+    <div style="flex:1;min-width:0">
+      <b style="font-size:.92rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${usr.username}${isMe ? ' <span class="badge badge-blue" style="font-size:10px">You</span>' : ''}</b>
+      <div style="display:flex;gap:4px;margin-top:2px">
+        <span class="badge badge-gray" style="font-size:.65rem;padding:2px 6px">Tier ${usr.tier || 1}</span>
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-weight:800;font-size:1rem;color:#FFD700"><span class="g-coin"></span> ${usr.coins.toLocaleString()}</div>
+      <div class="text-xs text-muted" style="font-size:10px">G-credits</div>
+    </div>
+  </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TIERS SYSTEM (Auto-assigned, inverted naming)
+// ═══════════════════════════════════════════════════════
+function renderTiers() {
+  const u = state.currentUser;
+  const cur = u.tier || CONFIG.MAX_TIERS;
+  const queuePos = u.queuePosition || 1;
+  const seats = u.ownedTiers ? u.ownedTiers.length : Math.max(1, u.tiersOwned || (u.tier ? 1 : 0));
+  const currentTierSeats = u.ownedTiers ? u.ownedTiers.filter(t => t === cur).length : seats;
+  document.getElementById('currentTierNum').innerText = cur;
+  document.getElementById('currentQueuePos').innerText = '#' + queuePos;
+  document.getElementById('currentTierMembers').innerText = TIERS[cur - 1].members.toLocaleString();
+  const seatsEl = document.getElementById('tierSeatsOwned');
+  if (seatsEl) seatsEl.innerText = seats + ' tier' + (seats > 1 ? 's' : '') + (currentTierSeats && currentTierSeats !== seats ? ' · ' + currentTierSeats + ' in this tier' : '');
+  const pct = Math.min(100, Math.round((queuePos / Math.max(1, Object.keys(state.allUsers).length)) * 100));
+  document.getElementById('tierProgress').style.width = pct + '%';
+
+  const summaryPurchased = document.getElementById('tierPurchasedCount');
+  const summaryClaimed = document.getElementById('tierClaimedCount');
+  const summaryInvested = document.getElementById('tierInvestment');
+  if (summaryPurchased) summaryPurchased.innerText = (u.tiersPurchased || 0) + ' tier' + ((u.tiersPurchased || 0) > 1 ? 's' : '');
+  if (summaryClaimed) summaryClaimed.innerText = (u.tiersClaimed || 0) + ' claimed';
+  if (summaryInvested) summaryInvested.innerText = '₹' + (u.investment || 0).toLocaleString();
+
+  const c = document.getElementById('tiersList');
+  c.innerHTML = '';
+  // Show tiers from 31 down to 1 (highest tier first)
+  for (let i = CONFIG.MAX_TIERS; i >= 1; i--) {
+    const s = TIERS[i - 1];
+    const isCurrentTier = s.num === cur;
+    const isAbove = s.num > cur; // higher tier = earlier in queue
+    const isLocked = s.num < cur - 3;
+    const div = document.createElement('div');
+    div.className = `tier-card ${isCurrentTier ? 'current-tier' : ''} ${isLocked ? 'locked-tier' : ''}`;
+    div.onclick = () => openTierDialog(s);
+
+    const colIdx = (s.num - 1) % TIER_COLORS.length;
+    const col = TIER_COLORS[colIdx];
+    const membersStr = s.members >= 1000000000 ? '1,073,741,824' : s.members.toLocaleString();
+    const queueLabel = getQueuePositionForTier(s.num);
+
+    div.innerHTML = `
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="tier-badge" style="background:${col}22;border:1px solid ${col}44;color:${col}">T${s.num}</div>
+    <div>
+      <p style="font-weight:700;font-size:.92rem">Tier ${s.num} <span style="color:rgba(255,255,255,0.35);font-size:.75rem;color:#FFD700">(Queue #${queueLabel})</span></p>
+      <p class="text-muted text-xs">Pool: ${membersStr} members</p>
+      <p class="text-muted text-xs">Entry price: ₹${getTierPrice(s.num)} · public pool details visible</p>
+    </div>
+  </div>
+  <div style="text-align:right">
+    ${isCurrentTier ? `<span class="badge badge-green">Yours ✓</span>` : ''}
+    ${isAbove ? `<span class="badge badge-blue">Higher Tier 🔼</span>` : ''}
+    ${isLocked ? `<span style="font-size:1.1rem">🔒</span>` : ''}
+    ${!isCurrentTier && !isAbove && !isLocked ? `<span class="text-muted text-xs">›</span>` : ''}
+  </div>`;
+    c.appendChild(div);
+  }
+}
+
+function openTierDialog(tier) {
+  const u = state.currentUser;
+  const ownedSeats = u.ownedTiers?.filter(t => t === tier.num).length || 0;
+  const membersStr = tier.members >= 1000000000 ? '1,073,741,824' : tier.members.toLocaleString();
+  const tierPrice = getTierPrice(tier.num);
+  document.getElementById('tierDialogTitle').innerText = 'Tier ' + tier.num + ' 🎰 (₹' + tierPrice + ')';
+  document.getElementById('tierDialogDesc').innerText = 'Members: ' + membersStr + ' · Price: ₹' + tierPrice;
+  const col = TIER_COLORS[(tier.num - 1) % TIER_COLORS.length];
+  document.getElementById('tierDialogContent').innerHTML = `
+<div style="background:${col}11;border:1px solid ${col}33;border-radius:14px;padding:16px;text-align:center;margin-bottom:16px">
+  <div style="font-family:'Poppins',sans-serif;font-size:2.5rem;font-weight:800;color:${col}">${tier.num}</div>
+  <p style="font-size:.85rem;color:rgba(255,255,255,0.6)">Tier Level</p>
+  <p style="font-size:.75rem;color:${col};margin-top:8px;font-weight:700">Entry Price: ₹${tierPrice}</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+  <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px">
+    <p class="text-muted text-xs">Pool Members</p>
+    <p style="font-weight:700;font-family:'Poppins',sans-serif;font-size:1rem">${membersStr}</p>
+  </div>
+  <div style="text-align:center;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px">
+    <p class="text-muted text-xs">Entry Price</p>
+    <p style="font-weight:700;font-family:'Poppins',sans-serif;font-size:1rem">₹${tierPrice}</p>
+  </div>
+</div>
+<div style="background:rgba(255,167,38,0.08);border:1px solid rgba(255,167,38,0.2);border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">
+  <p class="text-xs" style="color:#ffa726">⏳ Payout Status: <b>Pending Admin Verification</b></p>
+</div>
+${ownedSeats > 0 ? `<div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.16);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center"><p class="text-sm" style="margin:0;color:#c8e6c9">You own ${ownedSeats} seat${ownedSeats > 1 ? 's' : ''} in this tier.</p></div>` : ''}
+<p class="text-muted text-sm" style="margin-bottom:14px;line-height:1.6">Tiers are auto-assigned. Tier 1 costs ₹1 (entry level), Tier 31 costs ₹31 (highest tier). Each tier has exponentially more members. Payouts are credited after admin verification.</p>
+${tier.num === u.tier || ownedSeats > 0 ? `<button class="btn btn-white btn-full btn-lg" onclick="showMyTierClaimInfo()">Claim / View My Tier</button>` : ''}
+`;
+  document.getElementById('tierDialog').classList.add('open');
+}
+
+function showMyTierClaimInfo() {
+  const u = state.currentUser;
+  if (!u) return showToast('Login first to view your tiers', 'error');
+  const seats = u.ownedTiers ? u.ownedTiers.length : (u.tiersOwned || 1);
+  const tierNum = u.tier || 1;
+  const tierPrice = getTierPrice(tierNum);
+  const queuePos = u.queuePosition || 1;
+  const purchased = u.tiersPurchased || 0;
+  const claimed = u.tiersClaimed || 0;
+  const invested = u.investment || 0;
+  const currentTierSeats = u.ownedTiers ? u.ownedTiers.filter(t => t === tierNum).length : seats;
+  const tierCounts = u.ownedTiers ? u.ownedTiers.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {}) : { [tierNum]: seats };
+  const breakdownHtml = Object.keys(tierCounts).sort((a, b) => b - a).map(t => `<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Tier ${t}</span><strong>${tierCounts[t]} seat${tierCounts[t] > 1 ? 's' : ''}</strong></div>`).join('');
+  const content = `
+<div style="text-align:center;margin-bottom:18px">
+  <div style="font-size:2.5rem;margin-bottom:12px">🎟️</div>
+  <h3 style="font-family:'Poppins',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:8px">Your Tier Details</h3>
+  <p class="text-muted text-sm">Tier ${tierNum} (₹${tierPrice}) · Queue #${queuePos}</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+  <div style="background:rgba(102,187,106,0.1);border:1px solid rgba(102,187,106,0.2);border-radius:14px;padding:16px;text-align:center">
+    <p class="text-muted text-xs">Total seats owned</p>
+    <p style="font-weight:700;font-size:1.2rem">${seats}</p>
+  </div>
+  <div style="background:rgba(89,110,255,0.1);border:1px solid rgba(89,110,255,0.2);border-radius:14px;padding:16px;text-align:center">
+    <p class="text-muted text-xs">Seats in this tier</p>
+    <p style="font-weight:700;font-size:1.2rem">${currentTierSeats}</p>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+  <div style="background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.2);border-radius:14px;padding:16px;text-align:center">
+    <p class="text-muted text-xs">Purchased tiers</p>
+    <p style="font-weight:700;font-size:1.2rem">${purchased}</p>
+  </div>
+  <div style="background:rgba(255,82,82,0.1);border:1px solid rgba(255,82,82,0.2);border-radius:14px;padding:16px;text-align:center">
+    <p class="text-muted text-xs">Total investment</p>
+    <p style="font-weight:700;font-size:1.2rem">₹${invested.toLocaleString()}</p>
+  </div>
+</div>
+<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px;margin-bottom:16px">
+  <p class="text-muted text-xs" style="margin-bottom:10px">Seat breakdown by tier</p>
+  ${breakdownHtml}
+</div>
+<p class="text-muted text-sm" style="line-height:1.6;margin-bottom:16px">Your tier seat counts are shown above. Use the tier dashboard to see the full tier map and your current position. Each tier has dynamic pricing: Tier 1 = ₹1, Tier 2 = ₹2, ..., Tier 31 = ₹31.</p>
+<button class="btn btn-blue btn-full" onclick="closeDialog('tierDialog'); openBuyTiersDialog();" style="margin-bottom:10px">Get More Slots 🚀</button>
+`;
+  document.getElementById('tierDialogTitle').innerText = 'My Tier Info';
+  document.getElementById('tierDialogDesc').innerText = 'View your tier details and pricing.';
+  document.getElementById('tierDialogContent').innerHTML = content;
+  document.getElementById('tierDialog').classList.add('open');
+}
+// SPIN WHEEL
+// ═══════════════════════════════════════════════════════
+let spinning = false, spinAngle = 0, spinVelocity = 0;
+let spinRAF = null;
+
+function initSpinWheel() {
+  const canvas = document.getElementById('spinCanvas');
+  if (!canvas) return;
+  drawWheel(canvas, spinAngle);
+}
+
+function drawWheel(canvas, angle) {
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 4;
+  const seg = CONFIG.SPIN_PRIZES.length;
+  const arc = (2 * Math.PI) / seg;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Outer ring
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 4, 0, 2 * Math.PI);
+  const gOuter = ctx.createRadialGradient(cx, cy, r - 10, cx, cy, r + 4);
+  gOuter.addColorStop(0, '#b8860b');
+  gOuter.addColorStop(0.5, '#ffd700');
+  gOuter.addColorStop(1, '#8b6914');
+  ctx.fillStyle = gOuter;
+  ctx.fill();
+
+  // Decorative dots on ring
+  for (let i = 0; i < seg * 2; i++) {
+    const a = ((2 * Math.PI) / seg / 2) * i + angle;
+    const dx = cx + Math.cos(a) * (r - 2);
+    const dy = cy + Math.sin(a) * (r - 2);
+    ctx.beginPath();
+    ctx.arc(dx, dy, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff8e1';
+    ctx.fill();
+    // gems
+    ctx.beginPath();
+    ctx.arc(dx, dy, 3.5, 0, 2 * Math.PI);
+    ctx.fillStyle = CONFIG.SPIN_PRIZES[i % seg].color;
+    ctx.fill();
+  }
+
+  // Segments
+  CONFIG.SPIN_PRIZES.forEach((prize, i) => {
+    const startA = arc * i + angle - Math.PI / 2;
+    const endA = startA + arc;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r - 10, startA, endA);
+    ctx.closePath();
+    const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    gr.addColorStop(0, 'rgba(255,255,255,0.12)');
+    gr.addColorStop(1, prize.color + 'cc');
+    ctx.fillStyle = gr;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Text and Official Coin
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startA + arc / 2);
+
+    // Draw Label
+    ctx.textAlign = 'right';
+    ctx.font = '800 13px Poppins,sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(prize.label, r - 40, 5);
+
+    // Draw Official Coin (Real 3D effect)
+    const coinX = r - 22;
+    const coinY = 0;
+    const cr = 9;
+
+    // 3D Rim (Outer Edge)
+    ctx.beginPath();
+    ctx.arc(coinX, coinY, cr, 0, Math.PI * 2);
+    ctx.fillStyle = '#b8860b'; // Deep gold for rim
+    ctx.fill();
+
+    // Main Coin Face
+    const fr = cr - 1.2;
+    const cg = ctx.createRadialGradient(coinX - fr * 0.35, coinY - fr * 0.35, fr * 0.1, coinX, coinY, fr);
+    cg.addColorStop(0, '#fff');
+    cg.addColorStop(0.45, '#FFD700');
+    cg.addColorStop(1, '#FFA000');
+    ctx.beginPath();
+    ctx.arc(coinX, coinY, fr, 0, Math.PI * 2);
+    ctx.fillStyle = cg;
+    ctx.fill();
+
+    // Black G
+    ctx.fillStyle = '#000';
+    ctx.font = `900 ${fr * 1.2}px Poppins`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('G', coinX, coinY);
+
+    ctx.restore();
+  });
+
+  // Center circle
+  ctx.save();
+  const gc = ctx.createRadialGradient(cx - 10, cy - 10, 5, cx, cy, 32);
+  gc.addColorStop(0, '#ffffff');
+  gc.addColorStop(1, '#dcdcdc');
+  ctx.beginPath();
+  ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
+  ctx.fillStyle = gc;
+  ctx.shadowColor = 'rgba(0,0,0,0.4)';
+  ctx.shadowBlur = 15;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 26, 0, 2 * Math.PI);
+  const lc = ctx.createLinearGradient(cx - 20, cy - 20, cx + 20, cy + 20);
+  lc.addColorStop(0, '#448aff');
+  lc.addColorStop(1, '#29b6f6');
+  ctx.fillStyle = lc;
+  ctx.fill();
+
+  // Try to draw logo image
+  if (!window._spinLogoImg) {
+    window._spinLogoImg = new Image();
+    window._spinLogoImg.src = CONFIG.LOGO_URL;
+  }
+
+  if (window._spinLogoImg.complete && window._spinLogoImg.naturalWidth !== 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(window._spinLogoImg, cx - 20, cy - 20, 40, 40);
+    ctx.restore();
+  } else {
+    ctx.font = '800 14px Poppins';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('G31', cx, cy);
+  }
+  ctx.restore();
+}
+
+function doSpin(type) {
+  if (spinning) return;
+  const u = state.currentUser;
+
+  if (type === 'coins') {
+    if ((u.spinTickets || 0) < 1) return showToast("Not enough tickets! Earn tickets from tasks", "error");
+    u.spinTickets--;
+  } else {
+    const tokCost = 200;
+    if ((u.spinTokens || 0) < tokCost) return showToast("Not enough tokens! Need 200 tokens", "error");
+    u.spinTokens -= tokCost;
+  }
+
+  spinning = true;
+  document.getElementById('spinBtn1').disabled = true;
+  const spinBtn2 = document.getElementById('spinBtn2');
+  if (spinBtn2) spinBtn2.disabled = true;
+
+  const totalRotation = Math.PI * 2 * (10 + Math.random() * 8);
+  const duration = 4500 + Math.random() * 1000;
+  const startTime = Date.now();
+  const startAngle = spinAngle;
+
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const ease = t < 1 ? 1 - Math.pow(1 - t, 4) : 1;
+    spinAngle = startAngle + totalRotation * ease;
+
+    const canvas = document.getElementById('spinCanvas');
+    if (canvas) drawWheel(canvas, spinAngle);
+
+    if (t < 1) {
+      spinRAF = requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      document.getElementById('spinBtn1').disabled = false;
+      const spinBtn2b = document.getElementById('spinBtn2');
+      if (spinBtn2b) spinBtn2b.disabled = false;
+
+      // Determine winning segment based on the pointer at the top of the wheel
+      const seg = CONFIG.SPIN_PRIZES.length;
+      const arc = (2 * Math.PI) / seg;
+      const normalizedAngle = ((spinAngle % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+      const pointerAngle = (2 * Math.PI - normalizedAngle) % (2 * Math.PI);
+      const idx = Math.floor(pointerAngle / arc) % seg;
+      const prize = CONFIG.SPIN_PRIZES[idx] || CONFIG.SPIN_PRIZES[0];
+
+      // Award prize (pending admin approval for higher amounts)
+      if (prize.coins && prize.coins > 0) {
+        u.coins += prize.coins;
+        u.totalSpinCoins = (u.totalSpinCoins || 0) + prize.coins;
+        if (!u.txHistory) u.txHistory = [];
+        u.txHistory.unshift({ type: 'spin', coins: prize.coins, desc: 'Spin wheel win: ' + prize.label, time: Date.now(), status: 'pending' });
+      }
+      u.totalSpins = (u.totalSpins || 0) + 1;
+
+      // Record this spin in the global spin records (real data only — no mocks)
+      if (!state.spinRecords) state.spinRecords = [];
+      state.spinRecords.unshift({
+        user: u.username || u.phone || 'User',
+        userId: u.id,
+        avatar: getAvatarUrl(u),
+        prize: prize.label,
+        coins: prize.coins,
+        time: Date.now()
+      });
+      // Keep only last 50 records in memory
+      if (state.spinRecords.length > 50) state.spinRecords.length = 50;
+
+      saveData();
+
+      // Refresh both panels immediately after spin
+      renderSpinRecords();
+      renderSpinLeaderboard();
+
+      // Show result dialog
+      const isZero = prize.coins === 0;
+      const iconEl = document.getElementById('spinResultIcon');
+      if (iconEl) {
+        if (isZero) iconEl.innerHTML = '📺';
+        else iconEl.innerHTML = '<span class="g-coin" style="width:64px;height:64px;font-size:32px"></span>';
+      }
+      document.getElementById('spinResultTitle').innerText = isZero ? 'Better luck next time!' : 'You won ' + prize.coins + '!';
+      document.getElementById('spinResultDesc').innerText = isZero ? 'Watch an ad to get a bonus spin! 📺' : prize.coins + ' coins added · ⏳ Payout pending admin verification';
+      document.getElementById('spinResultDialog').classList.add('open');
+      if (prize.coins > 0) animateCoins(document.getElementById('spinResultIcon'), prize.coins);
+      if (document.getElementById('spinCoins')) document.getElementById('spinCoins').innerText = u.coins.toLocaleString();
+      if (document.getElementById('spinTickets')) document.getElementById('spinTickets').innerText = u.spinTickets || 0;
+      // Removed instant headerCoins update to allow counting animation
+    }
+  }
+  spinRAF = requestAnimationFrame(animate);
+}
+
+function renderSpinRecords() {
+  const container = document.getElementById('spinRecords');
+  if (!container) return;
+
+  // Only real spin records — no fake mock data
+  const history = state.spinRecords || [];
+
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:24px 16px;color:rgba(255,255,255,0.35)">
+        <div style="font-size:2rem;margin-bottom:8px">🎡</div>
+        <div style="font-size:0.85rem">No spins yet — be the first to spin!</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = history.slice(0, 10).map((h, i) => {
+    const hue = (h.userId ? h.userId.charCodeAt(0) * 37 : i * 47) % 360;
+    const bg = h.avatar && h.avatar.includes('dicebear') ? 'transparent' : `hsl(${hue}, 65%, 55%)`;
+    const avatarStyle = h.avatar
+      ? `background-image:url('${h.avatar}');background-size:contain;background-position:center;background-repeat:no-repeat;background-color:${bg};`
+      : `background:hsl(${hue}, 65%, 55%);`;
+    const timeLabel = typeof formatTimeAgo === 'function' ? formatTimeAgo(h.time) : 'just now';
+    const prizeColor = h.coins >= 20 ? '#f5c518' : h.coins >= 10 ? '#00e676' : h.coins >= 5 ? '#29b6f6' : 'rgba(255,255,255,0.4)';
+    return `
+      <div class="win-record" style="animation-delay:${i * 0.07}s">
+        <div class="win-user">
+          <div class="win-avatar" style="${avatarStyle}border-radius:50%;width:34px;height:34px;flex-shrink:0"></div>
+          <div class="win-info">
+            <div style="font-size:0.88rem;font-weight:600">${h.user}</div>
+            <div class="text-xs text-muted" style="font-size:0.72rem">${timeLabel}</div>
+          </div>
+        </div>
+        <div class="win-amount" style="color:${prizeColor};font-weight:700">
+          <span class="g-coin"></span> ${h.prize}
+        </div>
+      </div>`;
+  }).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function buyTickets() {
+  showToast("Complete tasks and referrals to earn spin tickets!", "success");
+}
+
+function renderSpinLeaderboard() {
+  const container = document.getElementById('spinLeaderboardList');
+  if (!container) return;
+
+  const u = state.currentUser;
+
+  // Real users only — zero fake mocks
+  let all = Object.values(state.allUsers || {}).map(user => ({
+    username: user.username || user.phone || 'User',
+    totalSpins: user.totalSpins || 0,
+    totalSpinCoins: user.totalSpinCoins || 0,
+    tier: user.tier || 1,
+    id: user.id,
+    avatar: getAvatarUrl(user)
+  })).filter(usr => usr.totalSpins > 0); // Only show users who have actually spun
+
+  // Sort by total spins descending
+  all.sort((a, b) => b.totalSpins - a.totalSpins);
+
+  const userRank = all.findIndex(x => x.id === u.id) + 1;
+  const rankLabel = userRank > 0 ? `#${userRank}` : 'Spin to rank!';
+
+  container.innerHTML = `<div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="card-title">🏆 Top Spinners</div>
+    <div style="font-size:0.75rem;color:#448aff;font-weight:700">Your Rank: ${rankLabel}</div>
+  </div>`;
+
+  if (all.length === 0) {
+    container.innerHTML += `
+      <div style="text-align:center;padding:32px 16px;color:rgba(255,255,255,0.35)">
+        <div style="font-size:2.2rem;margin-bottom:8px">🎰</div>
+        <div style="font-size:0.85rem">No spinners yet — be the first!</div>
+        <div style="font-size:0.72rem;margin-top:4px;color:rgba(255,255,255,0.2)">Leaderboard updates live after each spin</div>
+      </div>`;
+  } else {
+    const rankColors = ['#f5c518', '#c0c0c0', '#cd7f32'];
+    all.slice(0, 20).forEach((usr, i) => {
+      const isMe = usr.id === u.id;
+      const bgSize = (usr.avatar && usr.avatar.includes('dicebear.com')) ? 'contain' : 'cover';
+      const rankBadge = i < 3
+        ? `<span style="font-size:1rem;line-height:1">${['🥇', '🥈', '🥉'][i]}</span>`
+        : `<span style="font-weight:800;font-size:.78rem;color:rgba(255,255,255,0.3);width:20px;display:inline-block;text-align:center">${i + 1}</span>`;
+
+      container.innerHTML += `
+        <div class="list-item" style="${isMe ? 'background:rgba(68,138,255,0.1);border-left:3px solid #448aff;' : ''}">
+          <div style="width:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${rankBadge}</div>
+          <div class="avatar-sleek" style="width:36px;height:36px;background-image:url('${usr.avatar}');background-size:${bgSize};background-position:center;background-repeat:no-repeat;background-color:rgba(255,255,255,0.08);border:none;flex-shrink:0;border-radius:50%"></div>
+          <div style="flex:1;min-width:0">
+            <b style="font-size:.9rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${usr.username}${isMe ? ' <span class="badge badge-blue" style="font-size:10px">You</span>' : ''}</b>
+            <div style="display:flex;gap:4px;margin-top:2px;flex-wrap:wrap">
+              <span class="badge badge-gray" style="font-size:.65rem;padding:2px 6px">Tier ${usr.tier || 1}</span>
+              <span style="font-size:.65rem;color:rgba(255,255,255,0.35);padding:2px 0">${usr.totalSpinCoins} coins won</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:800;font-size:1rem;color:#448aff">${usr.totalSpins}</div>
+            <div class="text-xs text-muted" style="font-size:10px">spins</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// Auto-refresh spin leaderboard + records every 10 seconds while spin page is open
+let _spinRefreshInterval = null;
+function startSpinLiveRefresh() {
+  stopSpinLiveRefresh();
+  renderSpinLeaderboard();
+  renderSpinRecords();
+  _spinRefreshInterval = setInterval(() => {
+    if (document.getElementById('spinLeaderboardList')) {
+      renderSpinLeaderboard();
+      renderSpinRecords();
+    } else {
+      stopSpinLiveRefresh();
+    }
+  }, 10000);
+}
+function stopSpinLiveRefresh() {
+  if (_spinRefreshInterval) { clearInterval(_spinRefreshInterval); _spinRefreshInterval = null; }
+}
+
+function watchAdForSpin() {
+  const u = state.currentUser;
+  const today = new Date().toDateString();
+  if (u.lastAdDate !== today) { u.adsWatchedToday = 0; u.lastAdDate = today; }
+  if ((u.adsWatchedToday || 0) >= 5) return showToast("Daily ad limit reached (5/5). Come back tomorrow! 📅", "error");
+  u.adsWatchedToday = (u.adsWatchedToday || 0) + 1;
+  u.spinTickets = (u.spinTickets || 0) + 1;
+  saveData();
+  const remaining = 5 - u.adsWatchedToday;
+  showToast("📺 Ad watched! +1 spin ticket 🎟️ (" + remaining + " ads left today)", "success");
+  if (document.getElementById('spinTickets')) document.getElementById('spinTickets').innerText = u.spinTickets;
+  if (document.getElementById('adsRemaining')) document.getElementById('adsRemaining').innerText = remaining + '/5 left today';
+}
+
+// ═══════════════════════════════════════════════════════
+// REELS
+// ═══════════════════════════════════════════════════════
+
+function initReels() {
+  const container = document.getElementById('shortsContainer');
+  if (!container) return;
+
+  // Set up intersection observer for auto-play
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target.querySelector('.short-video');
+
+      if (entry.isIntersecting) {
+        video.play().catch(e => {
+          // Handle autoplay restrictions
+          console.log('Autoplay prevented:', e);
+        });
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.8 }); // Need 80% visible to play
+
+  // Observe all short items
+  container.querySelectorAll('.short-item').forEach(item => {
+    observer.observe(item);
+
+    // Add video event listeners
+    const video = item.querySelector('.short-video');
+
+    video.addEventListener('ended', () => {
+      // Loop the video
+      video.currentTime = 0;
+      video.play();
+    });
+
+    // Add double tap to like
+    let tapCount = 0;
+    video.addEventListener('click', (e) => {
+      if (e.detail === 2) { // Double click
+        const likeBtn = item.querySelector('.like-btn');
+        toggleLike(likeBtn);
+        // Show heart animation
+        showHeartAnimation(e.clientX, e.clientY);
+      }
+    });
+  });
+
+  // Add scroll event listener for smooth transitions
+  container.addEventListener('scroll', handleReelScroll);
+}
+
+function showHeartAnimation(x, y) {
+  const heart = document.createElement('div');
+  heart.innerHTML = '❤️';
+  heart.style.position = 'fixed';
+  heart.style.left = x + 'px';
+  heart.style.top = y + 'px';
+  heart.style.fontSize = '40px';
+  heart.style.pointerEvents = 'none';
+  heart.style.zIndex = '10000';
+  heart.style.animation = 'heartFloat 1s ease-out forwards';
+
+  document.body.appendChild(heart);
+
+  setTimeout(() => {
+    document.body.removeChild(heart);
+  }, 1000);
+}
+
+// Add CSS animation for heart
+const heartAnimation = `
+@keyframes heartFloat {
+  0% {
+    transform: scale(0) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) translateY(-50px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) translateY(-100px);
+    opacity: 0;
+  }
+}
+`;
+
+// Inject the animation
+const style = document.createElement('style');
+style.textContent = heartAnimation;
+document.head.appendChild(style);
+
+function toggleReelPlay(overlay) {
+  const video = overlay.parentElement.querySelector('.reel-video');
+  const playIcon = overlay.querySelector('.play-icon i');
+
+  if (video.paused) {
+    video.play();
+    playIcon.setAttribute('data-lucide', 'pause');
+  } else {
+    video.pause();
+    playIcon.setAttribute('data-lucide', 'play');
+  }
+
+  // Re-initialize Lucide icons
+  lucide.createIcons();
+}
+
+function toggleLike(btn) {
+  const heartIcon = btn.querySelector('i');
+  const countSpan = btn.querySelector('.action-count');
+  let count = parseInt(countSpan.textContent.replace('K', '000'));
+
+  if (heartIcon.style.color === 'rgb(244, 67, 54)') {
+    // Unlike
+    heartIcon.style.color = '';
+    count--;
+  } else {
+    // Like
+    heartIcon.style.color = '#f44336';
+    count++;
+    showToast('❤️ Liked!', 'success');
+  }
+
+  // Format count
+  if (count >= 1000) {
+    countSpan.textContent = (count / 1000).toFixed(1) + 'K';
+  } else {
+    countSpan.textContent = count;
+  }
+}
+
+function showComments() {
+  showToast('💬 Comments coming soon!', 'info');
+}
+
+function shareShort() {
+  const shortItem = event.target.closest('.short-item');
+  const username = shortItem.querySelector('.username').textContent;
+  const description = shortItem.querySelector('.short-text').textContent;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Grow31 Short',
+      text: `${username}: ${description}`,
+      url: window.location.href
+    });
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(`${username}: ${description}`).then(() => {
+      showToast('📋 Link copied to clipboard!', 'success');
+    });
+  }
+}
+
+function showMoreOptions() {
+  showToast('⚙️ More options coming soon!', 'info');
+}
+
+function toggleFollow(btn) {
+  const username = btn.closest('.short-user').querySelector('.username').textContent;
+
+  if (btn.textContent === 'Follow') {
+    btn.textContent = 'Following';
+    btn.style.background = 'rgba(255, 255, 255, 0.2)';
+    showToast(`👥 Following ${username}!`, 'success');
+  } else {
+    btn.textContent = 'Follow';
+    btn.style.background = 'rgba(255, 20, 147, 0.9)';
+    showToast(`❌ Unfollowed ${username}`, 'info');
+  }
+}
+
+function stopProgressTracking() {
+  if (progressInterval) {
+    clearInterval(progressInterval);
+    progressInterval = null;
+  }
+}
+
+function handleReelScroll() {
+  // Optional: Add any scroll-based effects here
+  // For now, the intersection observer handles the main functionality
+}
+
+// ═══════════════════════════════════════════════════════
+// FOLLOW & EARN
+// ═══════════════════════════════════════════════════════
+function followSocial(platform, coins, btn) {
+  const u = state.currentUser;
+  if (u.followedSocials.includes(platform)) {
+    return showToast("Already followed! Bonus already claimed", "error");
+  }
+  if (btn.disabled) {
+    return;
+  }
+
+  const links = {
+    twitter: 'https://twitter.com/grow31official',
+    telegram: 'https://t.me/+JhvCkrA8Fg8yZTVl',
+    instagram: 'https://www.instagram.com/_grow31',
+    youtube: 'https://www.youtube.com/@grow31-u3s',
+    facebook: 'https://www.facebook.com/grow31official',
+    whatsapp: 'https://wa.me/message/Y2CDYZEVKWA3M1'
+  };
+  const url = links[platform] || 'https://grow31.com';
+  window.open(url, '_blank');
+
+  btn.innerText = '⏳ Opened. Verifying...';
+  btn.disabled = true;
+  btn.classList.remove('btn-blue');
+  btn.classList.add('btn-outline');
+
+  // Simulated verification delay after redirect
+  setTimeout(() => {
+    if (!u.followedSocials.includes(platform)) {
+      u.followedSocials.push(platform);
+      u.coins += coins;
+      if (!u.txHistory) u.txHistory = [];
+      u.txHistory.unshift({ type: 'follow', coins, desc: 'Follow bonus: ' + platform, time: Date.now() });
+      if (btn) animateCoins(btn, coins);
+      saveData();
+      showToast('+' + coins + ' coins earned! 🎉', "success");
+      if (document.getElementById('followCoins')) document.getElementById('followCoins').innerText = u.coins.toLocaleString();
+      if (document.getElementById('headerCoins')) document.getElementById('headerCoins').innerText = u.coins.toLocaleString();
+    }
+    btn.innerText = '✓ Verified';
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-green');
+    btn.disabled = true;
+  }, 25000);
+
+  showToast("Opened the follow link. Verification will complete soon.", "success");
+}
+
+function doCheckIn() {
+  const u = state.currentUser;
+  const today = new Date().toDateString();
+  if (u.checkedInToday && u.lastCheckIn === today) {
+    return showToast("Already checked in today! Come back tomorrow", "error");
+  }
+  u.checkedInToday = true;
+  u.lastCheckIn = today;
+  u.coins += 5;
+  u.streak++;
+  u.spinTickets = (u.spinTickets || 0) + 1;
+  if (!u.txHistory) u.txHistory = [];
+  u.txHistory.unshift({ type: 'checkin', coins: 5, desc: 'Daily check-in bonus', time: Date.now() });
+  animateCoins(document.getElementById('homeCheckInBtn'), 5);
+  saveData();
+  renderDash();
+  showToast("✓ Checked in! +5 G-coins + 1 spin ticket 🎟️", "success");
+  // Update home button
+  const homeBtn = document.getElementById('homeCheckInBtn');
+  if (homeBtn) {
+    homeBtn.innerText = '✓ Checked In Today!';
+    homeBtn.disabled = true;
+    homeBtn.style.background = 'rgba(255,255,255,0.1)';
+    homeBtn.style.color = 'rgba(255,255,255,0.5)';
+    homeBtn.style.boxShadow = 'none';
+    homeBtn.style.cursor = 'not-allowed';
+  }
+  // Update follow button if it exists
+  const followBtn = document.getElementById('followCheckInBtn');
+  if (followBtn) {
+    followBtn.innerText = '✓ Checked In Today!';
+    followBtn.disabled = true;
+    followBtn.style.background = 'rgba(255,255,255,0.1)';
+    followBtn.style.color = 'rgba(255,255,255,0.5)';
+    followBtn.style.boxShadow = 'none';
+    followBtn.style.cursor = 'not-allowed';
+  }
+  if (document.getElementById('followCoins')) document.getElementById('followCoins').innerText = u.coins.toLocaleString();
+  updateRankBar(u);
+}
+
+// ═══════════════════════════════════════════════════════
+// WINNERS TABS
+// ═══════════════════════════════════════════════════════
+function switchWinnersTab(tab) {
+  ['winners', 'updates', 'schedule'].forEach(t => {
+    const el = document.getElementById(t + 'Tab');
+    if (el) el.style.display = 'none';
+    const btn = document.getElementById('wTab' + (['winners', 'updates', 'schedule'].indexOf(t) + 1));
+    if (btn) btn.className = 'btn btn-outline btn-sm';
+  });
+  const activeTab = document.getElementById(tab + 'Tab');
+  if (activeTab) activeTab.style.display = 'block';
+  const idx = ['winners', 'updates', 'schedule'].indexOf(tab) + 1;
+  const activeBtn = document.getElementById('wTab' + idx);
+  if (activeBtn) activeBtn.className = 'btn btn-blue btn-sm';
+
+  if (tab === 'winners') renderWinners();
+}
+
+function renderWinners() {
+  const container = document.getElementById('dynamicWinnersList');
+  if (!container) return;
+
+  const users = Object.values(state.allUsers).sort((a, b) => b.coins - a.coins).slice(0, 5);
+  const prizes = [t('prize_1'), t('prize_2'), t('prize_3'), t('prize_4'), t('prize_5')];
+  const medals = ['🥇', '🥈', '🥉', '🏅', '🎖️'];
+
+  container.innerHTML = users.map((u, i) => {
+    const finalPhoto = getAvatarUrl(u);
+    const bgSize = finalPhoto.includes('dicebear.com') ? 'contain' : 'cover';
+    return `
+      <div class="winner-card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:1.5rem">${medals[i] || '🏅'}</span>
+          <div class="avatar-sleek" style="width:36px;height:36px;background-image:url('${finalPhoto}');background-size:${bgSize};background-position:center;background-repeat:no-repeat;background-color:rgba(255,255,255,0.08);border:none;flex-shrink:0"></div>
+          <div style="flex:1">
+            <p style="font-weight:700">${u.username}</p>
+            <p class="text-muted text-xs">${t('top_performer')} · ${t('day')} ${u.day || 1}</p>
+          </div>
+          <div style="text-align:right">
+            <p style="font-weight:700;color:#f5c518">${prizes[i]}</p>
+            <p class="text-xs text-muted">${t('estimated_prize')}</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-blue">${t('tier')} ${u.tier || 1}</span>
+          <span class="badge badge-green">${u.coins.toLocaleString()} ${t('coins')}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// REFERRAL
+// ═══════════════════════════════════════════════════════
+function openReferralDialog() {
+  const u = state.currentUser;
+  const refLink = u.refCode || 'Grow31/' + u.username;
+  document.getElementById('myRefCodeDisplay').innerText = refLink;
+  document.getElementById('refDialogCount').innerText = u.referrals;
+  const tierCoinsPerRef = getTierCoinsPerReferral(u.tier || 1);
+  document.getElementById('refDialogEarned').innerText = ((u.referrals || 0) * tierCoinsPerRef).toLocaleString();
+  const refPerLabel = document.getElementById('refPerReferralLabel');
+  if (refPerLabel) refPerLabel.innerHTML = '+' + tierCoinsPerRef + ' <span class="g-coin"></span>';
+
+  // Render referral list
+  const c = document.getElementById('refListContainer');
+  if (c) {
+    const list = u.referralList || [];
+    if (list.length === 0) {
+      c.innerHTML = `<p class="text-muted text-xs text-center" style="padding:12px;opacity:.5">${t('no_referrals')}</p>`;
+    } else {
+      c.innerHTML = list.map((r, i) => `
+    <div class="ref-list-item">
+      <div class="avatar av-default" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">${i + 1}</div>
+      <div style="flex:1">
+        <p style="font-size:.85rem;font-weight:600">${r.name || 'User'}</p>
+        <p class="text-xs text-muted">${new Date(r.time).toLocaleDateString('en-IN')}</p>
+      </div>
+      <span class="badge badge-yellow" style="font-size:.65rem">+${getTierCoinsPerReferral(state.currentUser?.tier || 1)} <span class="g-coin"></span></span>
+    </div>`).join('');
+    }
+  }
+
+  // Daily referral timer
+  const timerEl = document.getElementById('refResetTimer');
+  if (timerEl) {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    timerEl.innerText = h + 'h ' + m + 'm';
+  }
+
+  document.getElementById('refDialog').classList.add('open');
+}
+
+function copyRef() {
+  const u = state.currentUser;
+  const refLink = u.refCode || 'Grow31/' + u.username;
+  const msg = 'Join Grow31 – 31 Days Challenge! Use my referral: ' + refLink + ' 🎉 Visit: https://grow31.com';
+  navigator.clipboard.writeText(msg).then(() => showToast("Referral link copied! 📋")).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = msg; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+    showToast("Referral link copied!");
+  });
+}
+
+function shareRef() {
+  const u = state.currentUser;
+  if (!u || !u.refCode) return;
+  const refLink = u.refCode || 'Grow31/' + u.username;
+  const msg = 'Join Grow31 – 31 Days, Real Rewards! 🚀\nUse my referral: ' + refLink + '\nGet +50 bonus coins on signup! 🎁\nhttps://grow31.com';
+  if (navigator.share) {
+    navigator.share({ title: 'Grow31 Referral', text: msg }).catch(() => { });
+  } else {
+    navigator.clipboard.writeText(msg).then(() => showToast("Share text copied!")).catch(() => { });
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════════════════
+function openDrawer(mode) {
+  if (mode === 'lang') return showLangDialog();
+  if (mode === 'country') return showCountryDialog();
+
+  const u = state.currentUser;
+  if (u) {
+    const drawerName = document.getElementById('drawerName');
+    const drawerPhone = document.getElementById('drawerPhone');
+    const drawerAvatar = document.getElementById('drawerAvatar');
+
+    if (drawerName) drawerName.innerText = u.username;
+    if (drawerPhone) drawerPhone.innerText = '+91 ' + u.phone;
+    updateAvatarDisplays();
+  }
+
+  const overlay = document.getElementById('drawerOverlay');
+  const drawer = document.getElementById('mainDrawer');
+  if (overlay) overlay.classList.add('open');
+  if (drawer) drawer.classList.add('open');
+  updateMobileBackBtn();
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeDrawer() {
+  const drawer = document.getElementById('mainDrawer');
+  if (drawer) drawer.classList.remove('open');
+  const overlay = document.getElementById('drawerOverlay');
+  if (overlay) overlay.classList.remove('open');
+  updateMobileBackBtn();
+  if (window.lucide) lucide.createIcons();
+}
+
+// ═══════════════════════════════════════════════════════
+// LANGUAGE / COUNTRY DIALOGS
+// ═══════════════════════════════════════════════════════
+function showLangDialog() {
+  const c = document.getElementById('langOptions');
+  if (!c) return;
+  c.innerHTML = CONFIG.LANGS.map(l => `
+<div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="setLang('${l.code}')">
+  <span style="font-size:.95rem;font-weight:500">${l.label}</span>
+  ${(state.currentUser?.lang || 'en') === l.code ? '<span class="badge badge-green">✓ Active</span>' : '<span class="text-muted text-sm">›</span>'}
+</div>`).join('');
+  openDialog('langDialog');
+}
+
+function setLang(code, btn) {
+  state.selectedLang = code;
+  if (state.currentUser) {
+    state.currentUser.lang = code;
+    saveData();
+  }
+  if (btn) {
+    document.querySelectorAll('.lang-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  closeDialog('langDialog');
+  translateApp();
+  renderMore();
+}
+
+function showCountryDialog() {
+  const c = document.getElementById('countryOptions');
+  if (!c) return;
+  c.innerHTML = CONFIG.COUNTRIES.map(ct => `
+<div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="setCountry('${ct.code}')">
+  <span style="font-size:.95rem;font-weight:500">${ct.label}</span>
+  ${(state.currentUser?.country || 'IN') === ct.code ? '<span class="badge badge-green">✓ Active</span>' : '<span class="text-muted text-sm">›</span>'}
+</div>`).join('');
+  openDialog('countryDialog');
+}
+
+function setCountry(code) {
+  if (state.currentUser) { state.currentUser.country = code; saveData(); }
+  closeDialog('countryDialog');
+  showToast(t("country_updated"));
+  renderMore();
+}
+
+// ═══════════════════════════════════════════════════════
+// AI CHAT
+// ═══════════════════════════════════════════════════════
+let chatHistory = [];
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  if (!input) return;
+
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  appendBubble(msg, 'user');
+  chatHistory.push({ role: 'user', content: msg });
+
+  const typing = appendBubble('...', 'ai');
+
+  try {
+    // Use fallback responses instead of unsafe API calls
+    const fallbacks = [
+      t('ai_resp_1'),
+      t('ai_resp_2'),
+      t('ai_resp_3'),
+      t('ai_resp_4'),
+      t('ai_resp_5')
+    ];
+    const reply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    if (typing) typing.innerText = reply;
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (e) {
+    const errMsg = t('ai_error');
+    if (typing) typing.innerText = errMsg;
+    chatHistory.push({ role: 'assistant', content: errMsg });
+  }
+
+  // Scroll to bottom
+  const msgs = document.getElementById('chatMessages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendBubble(text, type) {
+  const d = document.getElementById('chatMessages');
+  if (!d) return null;
+  const b = document.createElement('div');
+  b.className = `chat-bubble ${type}`;
+  b.innerText = text;
+  d.appendChild(b);
+  d.scrollTop = d.scrollHeight;
+  if (window.lucide) lucide.createIcons();
+  return b;
+}
+
+function clearChat() {
+  chatHistory = [];
+  const d = document.getElementById('chatMessages');
+  if (d) {
+    d.innerHTML = `<div class="chat-bubble ai">👋 Hi! I'm your Grow31 AI assistant. Ask me anything about the challenge, tiers, spin wheel, referrals, or how to earn more coins!</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// WALLET
+// ═══════════════════════════════════════════════════════
+function openWalletDialog() {
+  const u = state.currentUser;
+  if (!u) return;
+  document.getElementById('walletBalance').innerText = u.coins.toLocaleString();
+  const txEl = document.getElementById('walletTxList');
+  if (txEl) {
+    const history = u.txHistory || [];
+    if (history.length === 0) {
+      txEl.innerHTML = `<p class="text-muted text-xs text-center" style="padding:16px;opacity:.5">No transactions yet</p>`;
+    } else {
+      txEl.innerHTML = history.slice(0, 20).map(tx => {
+        const d = new Date(tx.time);
+        const dateStr = d.toLocaleDateString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        const icon = tx.type === 'spin' ? '🎡' : tx.type === 'referral' ? '👥' : tx.type === 'follow' ? '❤️' : tx.type === 'task' ? '✅' : tx.type === 'profile' ? '✨' : '💰';
+        return `<div class="wallet-tx">
+      <div>
+        <span style="font-size:.82rem">${icon} ${tx.desc || 'Transaction'}</span>
+        <p class="text-xs text-muted" style="margin-top:2px">${dateStr}</p>
+      </div>
+      <span class="wallet-${tx.coins > 0 ? 'credit' : 'pending'}">+${tx.coins} <span class="g-coin"></span></span>
+    </div>`;
+      }).join('');
+    }
+  }
+  openDialog('walletDialog');
+}
+
+// ═══════════════════════════════════════════════════════
+// USERNAME EDIT
+// ═══════════════════════════════════════════════════════
+function openUsernameEditDialog() {
+  const inp = document.getElementById('newUsernameInput');
+  if (inp) inp.value = state.currentUser.username || '';
+  openDialog('usernameEditDialog');
+}
+
+function saveNewUsername() {
+  const inp = document.getElementById('newUsernameInput');
+  const newName = (inp?.value || '').trim();
+  if (!newName || newName.length < 3) return showToast("Username must be at least 3 characters", "error");
+  if (newName.length > 20) return showToast("Username too long (max 20)", "error");
+  state.currentUser.username = newName;
+  // Regenerate referral code with new username
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  state.currentUser.refCode = 'Grow31/' + newName + '-' + randomNum;
+  saveData();
+  closeDialog('usernameEditDialog');
+  showToast("Username updated! ✓", "success");
+  renderMore();
+  renderDash();
+}
+
+function updateAvatarDisplays() {
+  const u = state.currentUser;
+  if (!u) return;
+  const finalUrl = getAvatarUrl(u);
+
+  const displays = ['dashAvatar', 'moreAvatar', 'drawerAvatar', 'rankBarAvatar', 'navMoreAvatar', 'avatarPickerBtn', 'completeProfileAvatar'];
+  displays.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('avatar-sleek');
+    if (finalUrl) {
+      el.style.backgroundImage = `url('${finalUrl}')`;
+      el.style.backgroundSize = (finalUrl.includes('dicebear.com')) ? 'contain' : 'cover';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundColor = 'rgba(255,255,255,0.08)';
+      el.innerHTML = '';
+    } else {
+      el.style.backgroundImage = 'none';
+      el.style.backgroundColor = '';
+      el.innerHTML = '🧑';
+    }
+  });
+  if (window.lucide) lucide.createIcons();
+}
+
+// ═══════════════════════════════════════════════════════
+// CONTACT
+// ═══════════════════════════════════════════════════════
+function sendContactMsg() {
+  const msg = document.getElementById('contactMsg')?.value?.trim() || '';
+  if (!msg) return showToast("Please write your message", "error");
+  // In production, send via API/email
+  showToast("Message sent! We'll reply within 24 hours 📬", "success");
+  document.getElementById('contactMsg').value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════════
+function switchAdminTab(t, btn) {
+  if (!btn) return;
+  document.querySelectorAll('#adminView .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#adminView .tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const panel = document.getElementById('atab-' + t);
+  if (panel) panel.classList.add('active');
+  if (t === 'users') renderAdminUsers();
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderAdminUsers() {
+  const c = document.getElementById('adminUserList');
+  if (!c) return;
+  c.innerHTML = '';
+  Object.values(state.allUsers).forEach(u => {
+    const tierNum = u.tier || 31;
+    const qPos = u.queuePosition || 1;
+    c.innerHTML += `
+  <div class="admin-user-card">
+    <div><b style="font-family:'Poppins',sans-serif">${u.username}</b><br>
+      <small class="text-muted">${u.phone}</small><br>
+      <small class="text-muted" style="font-size:.65rem">${u.refCode || '—'}</small>
+    </div>
+    <div class="text-right">
+      <span class="badge badge-yellow" style="color:#FFD700"><span class="g-coin"></span> ${u.coins.toLocaleString()}</span><br>
+      <small class="text-muted" style="margin-top:4px;display:block">Tier ${tierNum} · Q#${qPos}</small>
+      <small class="text-muted">Refs: ${u.referrals || 0}</small><br>
+      <button class="btn btn-green btn-sm" style="margin-top:4px;font-size:.65rem;padding:3px 8px" onclick="adminVerifyPayout('${u.phone}')">✓ Verify Payout</button>
+    </div>
+  </div>`;
+  });
+  if (window.lucide) lucide.createIcons();
+}
+
+function adminVerifyPayout(phone) {
+  const u = state.allUsers[phone];
+  if (!u) return;
+  u.payoutStatus = 'verified';
+  if (!u.txHistory) u.txHistory = [];
+  u.txHistory.unshift({ type: 'payout', coins: 0, desc: 'Payout verified by admin', time: Date.now() });
+  saveData();
+  showToast("Payout verified for " + u.username, "success");
+  renderAdminUsers();
+}
+
+function addRewardAdmin() {
+  const name = document.getElementById('admRewName')?.value || '';
+  const tier = document.getElementById('admRewTier')?.value || '';
+  const val = document.getElementById('admRewValue')?.value || '';
+  const desc = document.getElementById('admRewDesc')?.value || '';
+
+  if (!name || !val) return showToast("Fill all fields", "error");
+  state.globalRewards.push({ id: 'r' + Date.now(), name, tier, value: val, description: desc });
+  DB.set('globalRewards', state.globalRewards);
+  showToast("Reward Added!", "success");
+
+  const nameInput = document.getElementById('admRewName');
+  const descInput = document.getElementById('admRewDesc');
+  if (nameInput) nameInput.value = '';
+  if (descInput) descInput.value = '';
+}
+
+
+// ═══════════════════════════════════════════════════════
+// TIER-BASED COINS PER REFERRAL
+// ═══════════════════════════════════════════════════════
+function getTierCoinsPerReferral(tierNum) {
+  // Referral bonus is fixed for all users to keep counts stable.
+  return 50;
+}
+
+// Get tier price (₹1 per tier: Tier 1 = ₹1, Tier 2 = ₹2, ..., Tier 31 = ₹31)
+function getTierPrice(tierNum) {
+  return Math.max(1, Math.min(CONFIG.MAX_TIERS, tierNum || 1));
+}
+
+function getUserOwnedTiers(user) {
+  const ownedTierCount = Number(user?.ownedTiers?.length ?? user?.tiersOwned ?? 1);
+  return Math.max(1, ownedTierCount);
+}
+
+function getGlobalOccupiedTiers() {
+  return Object.values(state.allUsers).reduce((sum, user) => sum + getUserOwnedTiers(user), 0);
+}
+
+
+
+function openAvatarPicker() {
+  const u = state.currentUser;
+  const grid = document.getElementById('avatarOptionsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+  CONFIG.AVATARS.forEach(av => {
+    const opt = document.createElement('div');
+    opt.className = `av-option ${u.avatar === av.id ? 'selected' : ''}`;
+    opt.style.background = 'rgba(255,255,255,0.05)';
+    opt.innerHTML = `<img src="${av.url}" style="width:80%;height:80%">`;
+    opt.onclick = () => {
+      u.avatar = av.id;
+      u.photoUrl = null;
+      updateAvatarDisplays();
+      openAvatarPicker();
+      saveData();
+
+      // Live update leaderboard
+      const sorted = Object.values(state.allUsers).sort((a, b) => b.coins - a.coins);
+      renderLeaderboard(sorted);
+    };
+    grid.appendChild(opt);
+  });
+
+  openDialog('avatarPickerDialog');
+}
+
+function generateRandomAvatar() {
+  const u = state.currentUser;
+  const seed = Math.random().toString(36).substring(7);
+  const url = `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}`;
+  u.avatar = url;
+  u.photoUrl = null;
+  updateAvatarDisplays();
+  saveData();
+  showToast('Random avatar generated! 🎨', 'success');
+  closeDialog('avatarPickerDialog');
+
+  // Live update leaderboard
+  const sorted = Object.values(state.allUsers).sort((a, b) => b.coins - a.coins);
+  renderLeaderboard(sorted);
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) return showToast('Image too large. Max 2MB.', 'error');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const url = e.target.result;
+    state.currentUser.photoUrl = url;
+    state.currentUser.avatar = 'custom';
+    updateAvatarDisplays();
+    closeDialog('avatarPickerDialog');
+    saveData();
+    showToast('Profile photo updated!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function getTierByIndex(index) {
+  let remaining = index;
+  for (let tier = CONFIG.MAX_TIERS; tier >= 1; tier--) {
+    const capacity = TIERS[tier - 1].members;
+    if (remaining <= capacity) {
+      return tier;
+    }
+    remaining -= capacity;
+  }
+  return 1;
+}
+
+function getTierPurchasePlan(qty, startingOwned) {
+  const owned = Number(startingOwned ?? getGlobalOccupiedTiers());
+  const tiers = [];
+  const startIndex = owned + 1;
+  for (let i = 0; i < qty; i++) {
+    const tierIndex = startIndex + i;
+    const tier = getTierByIndex(tierIndex);
+    const price = getTierPrice(tier);
+    tiers.push({ tier, price, index: tierIndex });
+  }
+  const total = tiers.reduce((sum, item) => sum + item.price, 0);
+  return { qty, tiers, total };
+}
+
+function getNextTierPrice() {
+  const plan = getTierPurchasePlan(1);
+  return plan.tiers[0]?.price || CONFIG.TIER_PRICE;
+}
+
+// ═══════════════════════════════════════════════════════
+// BUY MORE TIERS DIALOG
+// ═══════════════════════════════════════════════════════
+function openBuyTiersDialog() {
+  const u = state.currentUser;
+  if (!u) return;
+  const nextPlan = getTierPurchasePlan(1);
+  const nextTier = nextPlan.tiers[0]?.tier || (u?.tier || CONFIG.MAX_TIERS);
+  const nextPrice = nextPlan.tiers[0]?.price || getNextTierPrice();
+  const qPos = u.queuePosition || 1;
+  const poolSize = TIERS[nextTier - 1]?.members || 1;
+
+  document.getElementById('bsCurrentTier').innerText = 'Tier ' + nextTier;
+  const queueEl = document.getElementById('bsQueuePos');
+  if (queueEl) queueEl.innerText = '#' + qPos;
+  const poolEl = document.getElementById('bsPoolSize');
+  if (poolEl) poolEl.innerText = poolSize.toLocaleString() + ' seats';
+  const priceEl = document.getElementById('bsPerTierPrice');
+  if (priceEl) priceEl.innerText = '₹' + nextPrice;
+
+  updateBuyTierPrice();
+
+  openDialog('buyTiersDialog');
+}
+
+function updateBuyTierPrice() {
+  const qty = Math.max(1, Math.min(10, parseInt(document.getElementById('bsQty')?.value || 1)));
+  const plan = getTierPurchasePlan(qty);
+  const el = document.getElementById('bsTotalPrice');
+  if (el) el.innerText = '₹' + plan.total;
+  const perTier = document.getElementById('bsPerTier');
+  if (perTier) {
+    const prices = plan.tiers.map(item => item.price);
+    if (new Set(prices).size === 1) {
+      perTier.innerText = qty + ' tier' + (qty > 1 ? 's' : '') + ' @ ₹' + prices[0] + ' each';
+    } else {
+      perTier.innerText = qty + ' tiers · ' + prices.map(p => '₹' + p).join(' + ');
+    }
+  }
+}
+
+function changeBuyQty(delta) {
+  const inp = document.getElementById('bsQty');
+  if (!inp) return;
+  let val = parseInt(inp.value || 1) + delta;
+  if (val < 1) val = 1;
+  if (val > 10) val = 10;
+  inp.value = val;
+  updateBuyTierPrice();
+}
+
+function confirmBuyTiers() {
+  const qty = Math.max(1, Math.min(10, parseInt(document.getElementById('bsQty')?.value || 1)));
+  const plan = getTierPurchasePlan(qty);
+  const total = plan.total;
+  state.isBuyingSlots = true;
+  closeDialog('buyTiersDialog');
+
+  state.pendingPayment = { qty, total, plan };
+  document.getElementById('paymentTierInfo').innerHTML =
+    '<div style="background:rgba(156,39,176,0.1);border:1px solid rgba(156,39,176,0.3);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center">' +
+    '<p style="font-weight:700;font-size:1rem;color:#ce93d8">📦 Buying ' + qty + ' tier' + (qty > 1 ? 's' : '') + '</p>' +
+    '<p class="text-muted text-xs" style="margin-top:4px">Next tiers: ' + plan.tiers.map(item => 'Tier ' + item.tier + ' @ ₹' + item.price).join(' + ') + ' = ₹' + total + '</p>' +
+    '</div>';
+  document.getElementById('payBtnText').innerText = 'Pay ₹' + total + ' for ' + qty + ' tier' + (qty > 1 ? 's' : '') + ' →';
+
+  showView('paymentView');
+}
+
+// ═══════════════════════════════════════════════════════
+// AVATAR PHOTO UPLOAD
+// ═══════════════════════════════════════════════════════
+function triggerPhotoUpload() {
+  document.getElementById('avatarPhotoInput')?.click();
+}
+
+function handlePhotoUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) return showToast("Please select an image", "error");
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const dataUrl = e.target.result;
+    if (!state.currentUser) return;
+    state.currentUser.avatarPhoto = dataUrl;
+    updateAvatarDisplays();
+    closeDialog('emojiDialog');
+    closeDialog('usernameEditDialog');
+    saveData();
+    showToast("Photo updated! 📸", "success");
+    renderMore();
+    renderDash();
+    // Live update leaderboard
+    const sorted = Object.values(state.allUsers).sort((a, b) => b.coins - a.coins);
+    renderLeaderboard(sorted);
+  };
+  reader.readAsDataURL(file);
+  input.value = ''; // Reset for next selection
+}
+
+
+
+// ═══════════════════════════════════════════════════════
+// COUNTDOWN TIMERS FOR WINNERS & LEADERBOARD
+// ═══════════════════════════════════════════════════════
+let countdownInterval = null;
+
+function startCountdownTimers() {
+  if (countdownInterval) clearInterval(countdownInterval);
+  updateCountdowns();
+  countdownInterval = setInterval(updateCountdowns, 1000);
+}
+
+function updateCountdowns() {
+  const now = new Date();
+  // Next midnight = reset time
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  const diff = midnight - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const timeStr = h + 'h ' + m + 'm ' + s + 's';
+
+  document.querySelectorAll('.countdown-timer').forEach(el => {
+    el.innerText = timeStr;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// PERKS SYSTEM
+// ═══════════════════════════════════════════════════════
+function openPerksView() {
+  const u = state.currentUser;
+  if (u) {
+    const perksCoinsEl = document.getElementById('perksCoins');
+    if (perksCoinsEl) perksCoinsEl.innerText = u.coins.toLocaleString();
+    const perksRefCountEl = document.getElementById('perksRefCount');
+    if (perksRefCountEl) perksRefCountEl.innerText = (u.referrals || 0) + ' refs';
+  }
+  renderPerks();
+  showView('perksView');
+}
+
+function renderPerks() {
+  const u = state.currentUser;
+  const refs = u.referrals || 0;
+  const c = document.getElementById('perksList');
+  if (!c) return;
+
+  const perks = [
+    { id: 'giveaway', title: '🎁 Giveaway Entry', desc: 'Enter exclusive giveaways and win real prizes!', req: 2, icon: '🎁', color: '#ce93d8' },
+    { id: 'spinbonus', title: '🎰 Extra Spin Tickets', desc: 'Get +5 bonus spin tickets every day', req: 5, icon: '🎡', color: '#448aff' },
+    { id: 'coinboost', title: '⚡ Coin Boost x2', desc: 'Double coins from all tasks for 7 days', req: 10, icon: '⚡', color: '#ffa726' },
+    { id: 'vip', title: '👑 VIP Badge', desc: 'Exclusive VIP badge and leaderboard highlight', req: 20, icon: '👑', color: '#f5c518' },
+  ];
+
+  c.innerHTML = perks.map(p => {
+    const unlocked = refs >= p.req;
+    const pct = Math.min(100, Math.round((refs / p.req) * 100));
+    return `
+  <div style="background:${unlocked ? 'rgba(0,230,118,0.05)' : 'rgba(255,255,255,0.04)'};border:1px solid ${unlocked ? 'rgba(0,230,118,0.25)' : 'rgba(255,255,255,0.08)'};border-radius:16px;padding:18px;margin-bottom:12px;transition:all .2s">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+      <div style="width:48px;height:48px;background:${p.color}22;border:1px solid ${p.color}44;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">${p.icon}</div>
+      <div style="flex:1">
+        <p style="font-weight:700;font-size:.95rem;margin-bottom:2px">${p.title}</p>
+        <p class="text-muted text-xs">${p.desc}</p>
+      </div>
+      ${unlocked ? '<span class="badge badge-green">✓ Unlocked</span>' : '<span class="badge badge-gray">🔒 Locked</span>'}
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="progress-track" style="flex:1;height:5px">
+        <div class="progress-fill" style="width:${pct}%;background:${unlocked ? '#00e676' : p.color}"></div>
+      </div>
+      <span class="text-xs text-muted">${refs}/${p.req} refs</span>
+    </div>
+    ${unlocked && p.id === 'giveaway' ? '<button class="btn btn-green btn-full btn-sm" style="margin-top:10px" onclick="enterGiveaway()">Enter Giveaway 🎁</button>' : ''}
+    ${!unlocked && p.id === 'giveaway' ? '<p class="text-xs text-muted text-center" style="margin-top:8px">Need <b style="color:#ce93d8">' + (p.req - refs) + ' more referrals</b> to unlock</p>' : ''}
+  </div>`;
+  }).join('');
+  if (window.lucide) lucide.createIcons();
+}
+
+function enterGiveaway() {
+  showToast("🎉 You've entered the giveaway! Winner announced at midnight.", "success");
+}
+
+// ═══════════════════════════════════════════════════════
+// PAYMENT PAGE TIER DISPLAY
+// ═══════════════════════════════════════════════════════
+function showPaymentWithTierInfo() {
+  const u = state.currentUser;
+  if (!u) return;
+  const pending = state.pendingPayment || { qty: 1, total: getNextTierPrice(), plan: getTierPurchasePlan(1) };
+  const plan = pending.plan || getTierPurchasePlan(pending.qty);
+  const qPos = u.queuePosition || 1;
+  const nextTier = plan.tiers[0];
+  const priceSummary = plan.tiers.map(item => '₹' + item.price).join(' + ');
+  const el = document.getElementById('paymentTierInfo');
+  if (el) {
+    el.innerHTML = '<div style="background:rgba(156,39,176,0.1);border:1px solid rgba(156,39,176,0.3);border-radius:12px;padding:14px;margin-bottom:16px;text-align:center">' +
+      '<p style="font-weight:700;color:#ce93d8">🎰 Next tier: <span style="font-size:1.2rem">Tier ' + nextTier.tier + '</span></p>' +
+      '<p class="text-muted text-xs" style="margin-top:4px">Queue #' + qPos + ' · Price per tier: ₹' + nextTier.price + '</p>' +
+      '<p class="text-muted text-xs" style="margin-top:8px">Purchasing <b>' + pending.qty + ' tier' + (pending.qty > 1 ? 's' : '') + '</b> for ₹' + pending.total + '</p>' +
+      '<p class="text-muted text-xs" style="margin-top:4px;color:#ddd">(' + priceSummary + ')</p>' +
+      '</div>';
+  }
+}
+
+function resetAllData() {
+  if (confirm("Delete everything?")) { localStorage.clear(); location.reload(); }
+}
+
+function adminShortcut() { showView('adminView') }
+
+function exitAdmin() { if (state.currentUser) loginSuccess(); }
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function syncFixedBarHeights() {
+  const root = document.documentElement;
+  const nav = document.querySelector('.bottom-nav');
+  const rank = document.getElementById('stickyRankBar');
+  if (nav) {
+    const navH = Math.ceil(nav.getBoundingClientRect().height || 0);
+    if (navH > 0) root.style.setProperty('--nav-height', navH + 'px');
+  }
+  if (rank) {
+    const rankH = Math.ceil(rank.getBoundingClientRect().height || 0);
+    if (rankH > 0) root.style.setProperty('--rankbar-height', rankH + 'px');
+  }
+}
+
+function updateMobileBackBtn() { }
+
+function mobileBackAction() { }
+
+let viewHistory = ['authView'];
+function pushView(id) {
+  if (viewHistory[viewHistory.length - 1] !== id) {
+    viewHistory.push(id);
+  }
+  if (viewHistory.length > 10) viewHistory.shift();
+}
+function goBack() {
+  if (state.isBuyingSlots) {
+    state.isBuyingSlots = false;
+    showView('dashView', false);
+    renderDash();
+    openBuyTiersDialog();
+    return;
+  }
+  if (viewHistory.length > 1) {
+    viewHistory.pop();
+    const prev = viewHistory[viewHistory.length - 1];
+    if (prev === 'authView' && state.currentUser) {
+      showView('dashView', false);
+      renderDash();
+      initSpinWheel();
+      return;
+    }
+    showView(prev, false);
+    if (prev === 'dashView') { renderDash(); initSpinWheel(); }
+  } else if (state.currentUser) {
+    showView('dashView', false);
+    renderDash();
+    initSpinWheel();
+  } else {
+    showView('authView', false);
+  }
+  syncFixedBarHeights();
+  updateMobileBackBtn();
+}
+function showView(id, addHistory = true) {
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.remove('active');
+    v.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'flex';
+  el.classList.add('active');
+
+  // Persist view for refresh recovery
+  if (id !== 'splashView' && id !== 'authView' && id !== 'termsView') {
+    state.currentView = id;
+    DB.set('lastView', id);
+  }
+
+  if (addHistory) pushView(id);
+  if (id === 'paymentView') {
+    updatePaymentView();
+  }
+  if (id === 'winnersView') {
+    renderWinners();
+    startCountdownTimers();
+  }
+  syncFixedBarHeights();
+  updateMobileBackBtn();
+  if (window.lucide) lucide.createIcons();
+  translateApp();
+}
+
+function nextQuizQuestion() {
+  const u = state.currentUser;
+  const dailyQs = getDailyQuizQuestions(u.day);
+
+  quizState.current++;
+  quizState.answered = false;
+
+  if (quizState.current >= dailyQs.length) {
+    u.quizState.done = true;
+    quizState.done = true;
+    saveData();
+    showQuizResult();
+  } else {
+    u.quizState.current = quizState.current;
+    saveData();
+    renderQuizQuestion();
+  }
+}
+
+function showQuizResult() {
+  const u = state.currentUser;
+  const qContainer = document.getElementById('quizContainer');
+  const qResult = document.getElementById('quizResult');
+  if (qContainer) qContainer.style.display = 'none';
+  if (qResult) qResult.style.display = 'block';
+
+  const dailyQs = getDailyQuizQuestions(u.day);
+  const total = dailyQs.length;
+  const score = quizState.score;
+  const earned = quizState.coinsEarned;
+
+  const progBar = document.getElementById('quizProgressBar');
+  if (progBar) progBar.style.width = '100%';
+
+  const emoji = score >= 8 ? '🏆' : score >= 5 ? '🎉' : '💪';
+  const title = score >= 8 ? 'Excellent!' : score >= 5 ? 'Good Job!' : 'Keep Practicing!';
+  const sub = score + ' out of ' + total + ' correct answers';
+
+  const emojiEl = document.getElementById('quizResultEmoji');
+  const titleEl = document.getElementById('quizResultTitle');
+  const subEl = document.getElementById('quizResultSub');
+  const coinsEl = document.getElementById('quizCoinsEarned');
+  if (emojiEl) emojiEl.innerText = emoji;
+  if (titleEl) titleEl.innerText = title;
+  if (subEl) subEl.innerText = sub;
+  if (coinsEl) coinsEl.innerHTML = `<span class="g-coin"></span> ${earned}`;
+
+  // Update header coins
+  if (u) {
+    const hc = document.getElementById('headerCoins');
+    if (hc) hc.innerText = u.coins.toLocaleString();
+  }
+}
+
+function resetQuiz() {
+  showToast("Quiz resets daily at midnight! Come back tomorrow 🌙", "success");
+}
+
+function openDialog(id) {
+  const d = document.getElementById(id);
+  if (d) {
+    d.classList.add('open');
+    updateMobileBackBtn();
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function closeDialog(id) {
+  const d = document.getElementById(id);
+  if (d) {
+    d.classList.remove('open');
+    updateMobileBackBtn();
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function showToast(m, type = "success") {
+  const c = document.getElementById('toastContainer');
+  const e = document.createElement('div');
+  e.className = `toast ${type}`;
+  e.innerText = m;
+  c.appendChild(e);
+  setTimeout(() => e.remove(), 3000);
+}
+
+function backToDash() {
+  showView('dashView');
+  renderDash();
+  initSpinWheel();
+}
+
+function goToProfileSetup() { showView('profileSetupView') }
+
+// ═══════════════════════════════════════════════════════
+// TASK SYSTEM — Backend-Ready Schema
+// ═══════════════════════════════════════════════════════
+const TASK_BANK = [
+  // ── HEALTH (category: health)
+  { key: 'task_walk_20', title: 'Morning Walk 🚶 (20 mins)', category: 'health', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_run_5k', title: 'Run or Jog 5km 🏃', category: 'health', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_water_8', title: 'Drink 8 Glasses of Water 💧', category: 'health', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_sleep_10', title: 'Sleep by 10:30 PM 😴', category: 'health', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_no_junk', title: 'Eat Zero Junk Food Today 🥗', category: 'health', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_yoga', title: '15-Min Yoga or Stretching 🧘', category: 'health', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_exercise_30', title: 'Exercise for 30 Minutes 🏋️', category: 'health', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_no_sugar', title: 'Avoid Sugar for Entire Day 🚫🍭', category: 'health', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_steps_7k', title: 'Complete 7,000 Steps 👟', category: 'health', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_meditation', title: '15-Min Meditation 🧘', category: 'health', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+
+  // ── LEARNING (category: learning)
+  { key: 'task_read_20', title: 'Read 20 Pages of a Book 📖', category: 'learning', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_podcast', title: 'Listen to a 20-Min Podcast 🎙️', category: 'learning', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_learn_skill', title: 'Learn 1 New Skill Online (30 mins) 💻', category: 'learning', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_news', title: 'Read Today\'s Business/Finance News 📰', category: 'learning', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_vocab', title: 'Learn 5 New Words in Any Language 🌐', category: 'learning', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_doc_watch', title: 'Watch an Educational Documentary 🎬', category: 'learning', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+
+  // ── FOCUS (category: focus)
+  { key: 'task_journal', title: 'Journal: Write 3 Goals for Tomorrow ✍️', category: 'focus', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_no_social_2h', title: 'No Social Media for 2 Hours 📵', category: 'focus', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_deep_work', title: 'Do 90-Min Deep Work Session 🎯', category: 'focus', difficulty: 'hard', reward: 20, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_gratitude', title: 'Write 5 Things You\'re Grateful For 🙏', category: 'focus', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_plan_day', title: 'Plan Tomorrow\'s Schedule Tonight 🗓️', category: 'focus', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_no_phone_morning', title: 'No Phone for First 30 Mins After Waking 📱✋', category: 'focus', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+
+  // ── SOCIAL (category: social)
+  { key: 'task_follow_ig', title: 'Follow Grow31 on Instagram 📸', category: 'social', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_share_story', title: 'Share Your Grow31 Progress on Story 📲', category: 'social', difficulty: 'medium', reward: 10, verificationMethod: 'screenshot_upload', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_call_family', title: 'Call a Parent or Sibling Today 📞', category: 'social', difficulty: 'easy', reward: 5, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_help_someone', title: 'Help Someone With Something Today 🤝', category: 'social', difficulty: 'medium', reward: 10, verificationMethod: 'self_report', apiEndpoint: '/api/tasks/complete' },
+
+  // ── GROW31 PLATFORM (category: grow31)
+  { key: 'task_checkin_streak', title: 'Check In for 3 Days in a Row 🔥', category: 'grow31', difficulty: 'medium', reward: 10, verificationMethod: 'auto', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_complete_quiz', title: 'Score 8/10 or Above in Daily Quiz 🧠', category: 'grow31', difficulty: 'hard', reward: 20, verificationMethod: 'auto', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_invite_friend', title: 'Invite 1 Friend Using Your Referral Code 👥', category: 'grow31', difficulty: 'hard', reward: 20, verificationMethod: 'auto', apiEndpoint: '/api/tasks/complete' },
+  { key: 'task_spin_wheel_win', title: 'Spin the Wheel and Win 10+ Coins 🎡', category: 'grow31', difficulty: 'medium', reward: 10, verificationMethod: 'auto', apiEndpoint: '/api/tasks/complete' },
+];
+
+// Category metadata for UI rendering
+const TASK_CATEGORIES = {
+  health: { label: 'Health & Fitness', icon: '💪', color: '#00e676', badgeClass: 'badge-green' },
+  learning: { label: 'Learning', icon: '📚', color: '#29b6f6', badgeClass: 'badge-blue' },
+  focus: { label: 'Focus & Mindset', icon: '🎯', color: '#ce93d8', badgeClass: 'badge-purple' },
+  social: { label: 'Social', icon: '🤝', color: '#ff7043', badgeClass: 'badge-orange' },
+  grow31: { label: 'Grow31 Challenge', icon: '🏆', color: '#ffd700', badgeClass: 'badge-yellow' },
+};
+
+const TASK_DIFFICULTY = {
+  easy: { label: 'Easy', reward: 5, color: '#00e676' },
+  medium: { label: 'Medium', reward: 10, color: '#ff7043' },
+  hard: { label: 'Hard', reward: 20, color: '#f5c518' },
+};
+
+/**
+ * Generates the daily task set for a specific day (1-31).
+ * Task difficulty scales as days increase.
+ * Each day gets 5 tasks: 2 Easy, 2 Medium, 1 Hard (early days)
+ * → 1 Easy, 2 Medium, 2 Hard (mid days 11–20)
+ * → 0 Easy, 1 Medium, 4 Hard (late days 21–31)
+ * Backend-ready: swap setTimeout shim with real GET /api/tasks?day={day}
+ */
+function getDailyTasks(day) {
+  // Seeded pseudo-random for consistent daily tasks
+  const seededRng = (seed) => {
+    let s = seed;
+    return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+  };
+  const rng = seededRng(day * 9973);
+
+  const easy = TASK_BANK.filter(t => t.difficulty === 'easy');
+  const medium = TASK_BANK.filter(t => t.difficulty === 'medium');
+  const hard = TASK_BANK.filter(t => t.difficulty === 'hard');
+
+  // Shuffle a pool using seeded RNG
+  const shuffled = (arr) => [...arr].sort(() => rng() - 0.5);
+
+  let pool = [];
+  if (day <= 10) {
+    pool = [...shuffled(easy).slice(0, 2), ...shuffled(medium).slice(0, 2), ...shuffled(hard).slice(0, 1)];
+  } else if (day <= 20) {
+    pool = [...shuffled(easy).slice(0, 1), ...shuffled(medium).slice(0, 2), ...shuffled(hard).slice(0, 2)];
+  } else {
+    pool = [...shuffled(medium).slice(0, 1), ...shuffled(hard).slice(0, 4)];
+  }
+
+  return pool.map((t, i) => ({
+    id: day * 100 + i,
+    day,
+    titleKey: t.key,
+    title: t.title,
+    category: t.category,
+    difficulty: t.difficulty,
+    reward: TASK_DIFFICULTY[t.difficulty].reward,
+    verificationMethod: t.verificationMethod,
+    apiEndpoint: t.apiEndpoint,
+    done: false,
+    completedAt: null, // ISO timestamp when completed (set server-side)
+  }));
+}
+
+function initTasks() {
+  const tasks = [];
+  for (let d = 1; d <= 31; d++) {
+    getDailyTasks(d).forEach(task => tasks.push(task));
+  }
+  return tasks;
+}
+
+// ═══════════════════════════════════════════════════════
+// QUIZ SYSTEM
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// QUIZ SYSTEM — Expanded 30-question bank
+// Backend-ready: swap QUIZ_QUESTIONS with GET /api/quiz?day={day}
+// ═══════════════════════════════════════════════════════
+const QUIZ_QUESTIONS = [
+  // ── Grow31 Platform (Easy)
+  { q: "How many days does the Grow31 challenge last?", opts: ["21 Days", "28 Days", "31 Days", "45 Days"], ans: 2, category: 'grow31', difficulty: 'easy', reward: 3 },
+  { q: "What do you earn by completing daily tasks?", opts: ["Points", "Stars", "G-Coins", "Badges"], ans: 2, category: 'grow31', difficulty: 'easy', reward: 3 },
+  { q: "What is the top tier in Grow31?", opts: ["Tier 1", "Tier 15", "Tier 31", "Tier 100"], ans: 2, category: 'grow31', difficulty: 'easy', reward: 3 },
+  { q: "What happens when you miss a daily check-in?", opts: ["Coins doubled", "Streak resets", "Account banned", "Nothing"], ans: 1, category: 'grow31', difficulty: 'easy', reward: 3 },
+  { q: "How many spin tickets do you start with?", opts: ["1", "2", "3", "5"], ans: 2, category: 'grow31', difficulty: 'easy', reward: 3 },
+  // ── Grow31 Platform (Medium)
+  { q: "What is the coin reward formula for daily tier bonus?", opts: ["Tier × 5", "Tier × 10", "Tier × 2", "Fixed 50 coins"], ans: 1, category: 'grow31', difficulty: 'medium', reward: 6 },
+  { q: "Which of these is NOT a valid way to earn G-Coins?", opts: ["Daily tasks", "Quiz", "Spin wheel", "Watching movies"], ans: 3, category: 'grow31', difficulty: 'medium', reward: 6 },
+  { q: "What does a hard task reward in Grow31?", opts: ["5 coins", "10 coins", "20 coins", "50 coins"], ans: 2, category: 'grow31', difficulty: 'medium', reward: 6 },
+  // ── Grow31 Platform (Hard)
+  { q: "If you score 10/10 on a quiz, how many bonus coins do you earn?", opts: ["10", "20", "30", "50"], ans: 2, category: 'grow31', difficulty: 'hard', reward: 10 },
+  { q: "How does Grow31's tier system assign positions?", opts: ["Random draw", "First-come first-served", "Highest spender", "Admin picks"], ans: 1, category: 'grow31', difficulty: 'hard', reward: 10 },
+  // ── Health & Fitness (Easy)
+  { q: "How many hours of sleep do experts recommend for adults?", opts: ["5–6 hrs", "6–7 hrs", "7–9 hrs", "10+ hrs"], ans: 2, category: 'health', difficulty: 'easy', reward: 3 },
+  { q: "How many glasses of water should you drink per day?", opts: ["4", "6", "8", "10"], ans: 2, category: 'health', difficulty: 'easy', reward: 3 },
+  { q: "What is the recommended daily step count for adults?", opts: ["2,000", "5,000", "10,000", "20,000"], ans: 2, category: 'health', difficulty: 'easy', reward: 3 },
+  // ── Health & Fitness (Medium)
+  { q: "Which exercise is best for cardiovascular health?", opts: ["Weight lifting", "Running", "Stretching", "Breathing exercises"], ans: 1, category: 'health', difficulty: 'medium', reward: 6 },
+  { q: "What percentage of daily calories should come from protein?", opts: ["5–10%", "10–15%", "15–35%", "50%+"], ans: 2, category: 'health', difficulty: 'medium', reward: 6 },
+  // ── Health & Fitness (Hard)
+  { q: "What is the VO2 max measurement an indicator of?", opts: ["Blood pressure", "Aerobic fitness capacity", "Muscle strength", "Bone density"], ans: 1, category: 'health', difficulty: 'hard', reward: 10 },
+  { q: "The body burns most fat in which metabolic state?", opts: ["Fed state", "Anabolic state", "Fasted/ketogenic state", "Post-workout only"], ans: 2, category: 'health', difficulty: 'hard', reward: 10 },
+  // ── Personal Finance (Easy)
+  { q: "What does 'saving' money mean?", opts: ["Spending wisely", "Setting aside money for future use", "Investing in stocks", "Borrowing from bank"], ans: 1, category: 'finance', difficulty: 'easy', reward: 3 },
+  { q: "What is a 'budget'?", opts: ["A type of loan", "A plan for spending and saving", "A credit card", "A government policy"], ans: 1, category: 'finance', difficulty: 'easy', reward: 3 },
+  // ── Personal Finance (Medium)
+  { q: "What is compound interest?", opts: ["Interest on principal only", "Interest on principal + accumulated interest", "A bank fee", "A tax on savings"], ans: 1, category: 'finance', difficulty: 'medium', reward: 6 },
+  { q: "Which of these is a better investment for long-term wealth?", opts: ["Lottery tickets", "Index funds", "Daily gambling", "Storing cash at home"], ans: 1, category: 'finance', difficulty: 'medium', reward: 6 },
+  // ── Personal Finance (Hard)
+  { q: "What does 'P/E ratio' stand for in stock investing?", opts: ["Profit-to-Expense", "Price-to-Earnings", "Potential-to-Equity", "Principal-to-Equity"], ans: 1, category: 'finance', difficulty: 'hard', reward: 10 },
+  { q: "What is 'dollar-cost averaging' in investing?", opts: ["Buying high, selling low", "Investing a fixed amount at regular intervals", "Only investing when market is up", "Selling stocks every month"], ans: 1, category: 'finance', difficulty: 'hard', reward: 10 },
+  // ── Technology (Easy)
+  { q: "What does 'AI' stand for?", opts: ["Auto Internet", "Artificial Intelligence", "Automated Input", "Advanced Integration"], ans: 1, category: 'tech', difficulty: 'easy', reward: 3 },
+  { q: "What does 'URL' stand for?", opts: ["Universal Resource Link", "Uniform Resource Locator", "User Remote Login", "Unified Record Library"], ans: 1, category: 'tech', difficulty: 'easy', reward: 3 },
+  // ── Technology (Medium)
+  { q: "What is 'blockchain' technology primarily used for?", opts: ["Video streaming", "Secure, decentralized record-keeping", "Cloud storage", "Gaming"], ans: 1, category: 'tech', difficulty: 'medium', reward: 6 },
+  { q: "What does 'API' stand for?", opts: ["App Programming Index", "Application Programming Interface", "Advanced Programming Instruction", "Automated Process Integration"], ans: 1, category: 'tech', difficulty: 'medium', reward: 6 },
+  // ── Technology (Hard)
+  { q: "In machine learning, what is 'overfitting'?", opts: ["Model trains too fast", "Model memorizes training data but fails on new data", "Model uses too much memory", "Model is too simple"], ans: 1, category: 'tech', difficulty: 'hard', reward: 10 },
+  { q: "What cryptographic algorithm is used in Bitcoin mining?", opts: ["MD5", "AES-256", "SHA-256", "RSA-2048"], ans: 2, category: 'tech', difficulty: 'hard', reward: 10 },
+  // ── Bonus Challenger
+  { q: "What is the 'compound effect' in personal development?", opts: ["Working multiple jobs", "Small consistent actions compounding over time", "Joining multiple programs", "Spending on self-improvement"], ans: 1, category: 'grow31', difficulty: 'hard', reward: 10 },
+];
+
+// Seeded shuffle for consistent daily quiz sets
+function getDailyQuizQuestions(day) {
+  const seededRng = (seed) => { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; };
+  const rng = seededRng(day * 7919 + 31);
+  return [...QUIZ_QUESTIONS].sort(() => rng() - 0.5).slice(0, 10);
+}
+
+let quizState = {
+  current: 0,
+  score: 0,
+  answered: false,
+  done: false,
+  lastDate: ''
+};
+
+function renderQuiz() {
+  const u = state.currentUser;
+  const today = new Date().toDateString();
+
+  // Load saved quiz state for today
+  if (!u.quizState || u.quizState.date !== today) {
+    u.quizState = { date: today, current: 0, score: 0, done: false, coinsEarned: 0 };
+    saveData();
+  }
+  quizState = {
+    current: u.quizState.current || 0,
+    score: u.quizState.score || 0,
+    coinsEarned: u.quizState.coinsEarned || 0,
+    answered: false,
+    done: u.quizState.done || false,
+    lastDate: today
+  };
+
+  if (quizState.done) {
+    showQuizResult();
+    return;
+  }
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const u = state.currentUser;
+  const qContainer = document.getElementById('quizContainer');
+  const qResult = document.getElementById('quizResult');
+  if (!qContainer) return;
+  qResult.style.display = 'none';
+  qContainer.style.display = 'block';
+
+  const dailyQs = getDailyQuizQuestions(u.day);
+  const total = dailyQs.length;
+  const idx = quizState.current;
+  const pct = Math.round((idx / total) * 100);
+  const progBar = document.getElementById('quizProgressBar');
+  if (progBar) progBar.style.width = pct + '%';
+
+  if (idx >= total) {
+    showQuizResult();
+    return;
+  }
+
+  const q = dailyQs[idx];
+  qContainer.innerHTML = `
+<div class="card" style="margin-bottom:16px;overflow:visible">
+  <div class="card-content" style="padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px">
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="badge badge-blue">Q${idx + 1} of ${total}</span>
+        <span class="badge badge-gray" style="font-size:.65rem;text-transform:uppercase">${q.difficulty}</span>
+      </div>
+      <span style="font-size:.78rem;color:#FFD700;font-weight:600">+${q.reward} <span class="g-coin"></span> if correct</span>
+    </div>
+    <p style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;line-height:1.5;margin-bottom:18px">${q.q}</p>
+    <div id="quizOpts" style="display:flex;flex-direction:column;gap:10px">
+      ${q.opts.map((opt, i) => `
+        <button onclick="selectQuizAnswer(${i})" id="qopt${i}" style="
+          width:100%;text-align:left;padding:13px 16px;border-radius:12px;
+          background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          color:#fff;font-size:.92rem;font-weight:500;cursor:pointer;
+          transition:all .2s ease;font-family:'Poppins',sans-serif;
+        " onmouseover="if(!this.dataset.locked)this.style.background='rgba(68,138,255,0.15)'"
+           onmouseout="if(!this.dataset.locked)this.style.background='rgba(255,255,255,0.06)'">
+          <span style="display:inline-block;width:24px;height:24px;border-radius:50%;
+            background:rgba(68,138,255,0.2);color:#82b1ff;font-size:.72rem;font-weight:700;
+            text-align:center;line-height:24px;margin-right:10px">${String.fromCharCode(65 + i)}</span>
+          ${opt}
+        </button>
+      `).join('')}
+    </div>
+  </div>
+</div>
+<div id="quizFeedback" style="display:none;padding:14px;border-radius:12px;margin-bottom:14px;text-align:center;font-weight:600"></div>
+<button id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none" class="btn btn-white btn-full btn-lg">
+  ${idx + 1 < total ? 'Next Question →' : 'See Results 🎉'}
+</button>
+`;
+}
+
+function selectQuizAnswer(selected) {
+  if (quizState.answered) return;
+  quizState.answered = true;
+
+  const u = state.currentUser;
+  const dailyQs = getDailyQuizQuestions(u.day);
+  const q = dailyQs[quizState.current];
+  const isCorrect = selected === q.ans;
+
+  if (isCorrect) {
+    quizState.score++;
+    quizState.coinsEarned += q.reward;
+    u.coins += q.reward;
+    if (!u.txHistory) u.txHistory = [];
+    u.txHistory.unshift({ type: 'quiz', coins: q.reward, desc: 'Quiz: ' + q.q.slice(0, 20) + '...', time: Date.now() });
+    const selBtn = document.getElementById('qopt' + selected);
+    if (selBtn) animateCoins(selBtn, q.reward);
+    renderDash();
+  }
+
+  const feedback = document.getElementById('quizFeedback');
+  const nextBtn = document.getElementById('quizNextBtn');
+
+  q.opts.forEach((_, i) => {
+    const btn = document.getElementById('qopt' + i);
+    if (!btn) return;
+    btn.dataset.locked = '1';
+    btn.style.cursor = 'default';
+    if (i === q.ans) {
+      btn.style.background = 'rgba(0,230,118,0.2)';
+      btn.style.borderColor = 'rgba(0,230,118,0.5)';
+      btn.style.color = '#00e676';
+    } else if (i === selected && !isCorrect) {
+      btn.style.background = 'rgba(255,82,82,0.2)';
+      btn.style.borderColor = 'rgba(255,82,82,0.5)';
+      btn.style.color = '#ff8a80';
+    }
+  });
+
+  if (feedback) {
+    feedback.style.display = 'block';
+    if (isCorrect) {
+      feedback.style.background = 'rgba(0,230,118,0.12)';
+      feedback.style.border = '1px solid rgba(0,230,118,0.3)';
+      feedback.style.color = '#00e676';
+      feedback.innerHTML = `✅ Correct! +${q.reward} <span class="g-coin"></span>`;
+    } else {
+      feedback.style.background = 'rgba(255,82,82,0.12)';
+      feedback.style.border = '1px solid rgba(255,82,82,0.3)';
+      feedback.style.color = '#ff8a80';
+      feedback.innerHTML = '❌ Wrong! Correct: <b>' + q.opts[q.ans] + '</b>';
+    }
+  }
+
+  // Update permanent state
+  u.quizState = {
+    date: quizState.lastDate,
+    current: quizState.current + 1,
+    score: quizState.score,
+    coinsEarned: quizState.coinsEarned,
+    done: quizState.current + 1 >= dailyQs.length
+  };
+  saveData();
+
+  if (nextBtn) nextBtn.style.display = 'flex';
+
+  const progBar = document.getElementById('quizProgressBar');
+  if (progBar) {
+    const pct = Math.round(((quizState.current + 1) / dailyQs.length) * 100);
+    progBar.style.width = pct + '%';
+  }
+}
+
+
+function animateCoins(sourceEl, count = 5) {
+  // Reward is the 'count' passed. We cap visual particles at 30.
+  const reward = count;
+  const actualCount = Math.min(reward, 30);
+  const destEl = document.getElementById('headerCoins') || document.querySelector('.coins-pill');
+  if (!destEl || !sourceEl) return;
+
+  const headerEl = document.querySelector('.app-header');
+  if (headerEl) headerEl.classList.add('reward-active');
+
+  const rect = sourceEl.getBoundingClientRect();
+  const destRect = destEl.getBoundingClientRect();
+
+  const startX = rect.left + rect.width / 2;
+  const startY = rect.top + rect.height / 2;
+
+  const destX = (destRect.left + destRect.width / 2) - startX;
+  const destY = (destRect.top + destRect.height / 2) - startY;
+
+  // Get current displayed value to increment from
+  let currentVal = parseInt(destEl.innerText.replace(/,/g, '')) || 0;
+  const step = Math.max(1, Math.floor(reward / actualCount));
+
+  for (let i = 0; i < actualCount; i++) {
+    setTimeout(() => {
+      const coin = document.createElement('div');
+      coin.className = 'coin-particle';
+      coin.style.left = startX + 'px';
+      coin.style.top = startY + 'px';
+      coin.style.setProperty('--dest-x', destX + 'px');
+      coin.style.setProperty('--dest-y', destY + 'px');
+
+      const duration = 0.7 + Math.random() * 0.5;
+      coin.style.animation = `flyToWallet ${duration}s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`;
+
+      document.body.appendChild(coin);
+
+      setTimeout(() => {
+        coin.remove();
+
+        // Update the display incrementally
+        currentVal += step;
+
+        // On last coin, ensure we show the absolute correct total from state
+        if (i === actualCount - 1 && state.currentUser) {
+          currentVal = state.currentUser.coins;
+        }
+
+        const formatted = currentVal.toLocaleString();
+        if (destEl.id === 'headerCoins') {
+          destEl.innerText = formatted;
+        } else {
+          const sub = destEl.querySelector('#headerCoins');
+          if (sub) sub.innerText = formatted;
+          else destEl.innerText = formatted;
+        }
+
+        destEl.classList.remove('coin-collecting');
+        void destEl.offsetWidth;
+        destEl.classList.add('coin-collecting');
+
+        if (i === actualCount - 1 && headerEl) {
+          setTimeout(() => headerEl.classList.remove('reward-active'), 800);
+        }
+      }, duration * 1000);
+    }, i * 120);
+  }
+}
+
+function saveData() { DB.set('users', state.allUsers) }
+
+function doLogout() {
+  localStorage.removeItem('g31_currentUserPhone');
+  localStorage.removeItem('g31_termsAccepted');
+  localStorage.removeItem('g31_lastView');
+  localStorage.removeItem('g31_lastDashPage');
+  state.currentUser = null;
+  location.reload();
+}
+
+// Profile setup - avatar picker (completed)
+// pickEmoji was replaced by professional openAvatarPicker logic above
+
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', () => {
+  if (!state.currentUser) prefillReferralFromUrl();
+});
+
+window.addEventListener('resize', () => {
+  syncFixedBarHeights();
+  updateMobileBackBtn();
+});
