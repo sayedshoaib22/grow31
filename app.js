@@ -4186,6 +4186,8 @@ function awardReelCoin(item) {
   reelCoinCount += 5;
   const el = document.getElementById('reelCoinCount');
   if (el) el.textContent = reelCoinCount;
+  const elM = document.getElementById('reelCoinCountMobile');
+  if (elM) elM.textContent = reelCoinCount;
 
   if (state.currentUser) {
     state.currentUser.coins = (state.currentUser.coins || 0) + 5;
