@@ -187,13 +187,13 @@
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
-              <path fill-rule="evenodd" clip-rule="evenodd"
+              <path fill-rule="evenodd" Clips-rule="evenodd"
                 d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
                 fill="#BFC8D0"></path>
               <path
                 d="M28 16C28 22.6274 22.6274 28 16 28C13.4722 28 11.1269 27.2184 9.19266 25.8837L5.09091 26.9091L6.16576 22.8784C4.80092 20.9307 4 18.5589 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16Z"
                 fill="url(#paint0_linear_87_7264)"></path>
-              <path fill-rule="evenodd" clip-rule="evenodd"
+              <path fill-rule="evenodd" Clips-rule="evenodd"
                 d="M16 30C23.732 30 30 23.732 30 16C30 8.26801 23.732 2 16 2C8.26801 2 2 8.26801 2 16C2 18.5109 2.661 20.8674 3.81847 22.905L2 30L9.31486 28.3038C11.3014 29.3854 13.5789 30 16 30ZM16 27.8462C22.5425 27.8462 27.8462 22.5425 27.8462 16C27.8462 9.45755 22.5425 4.15385 16 4.15385C9.45755 4.15385 4.15385 9.45755 4.15385 16C4.15385 18.5261 4.9445 20.8675 6.29184 22.7902L5.23077 26.7692L9.27993 25.7569C11.1894 27.0746 13.5046 27.8462 16 27.8462Z"
                 fill="white"></path>
               <path
@@ -683,13 +683,13 @@
         </div>
 
         <!-- Earn Coins Card -->
-        <div class="home-earn-card" onclick="showDashPage('pageClip')">
+        <div class="home-earn-card" onclick="showDashPage('pageClips')">
           <div class="home-earn-card__bg"></div>
           <div class="home-earn-card__left">
             <div class="home-earn-card__icon">🎥</div>
             <div>
               <h3 class="home-earn-card__title">Earn Coins</h3>
-              <p class="home-earn-card__desc">Watch Clip &amp; shop to earn rewards</p>
+              <p class="home-earn-card__desc">Watch Clips &amp; shop to earn rewards</p>
             </div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
@@ -855,7 +855,7 @@
         <!-- Tasks/Quiz tab row -->
         <div style="display:flex;gap:10px;margin-bottom:16px">
           <button class="btn btn-blue btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageTasks')"><i
-              data-lucide="clipboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
+              data-lucide="Clipsboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
               Tasks</span></button>
           <button class="btn btn-outline btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageQuiz')"><i
               data-lucide="brain" style="width:14px;height:14px"></i> <span data-i18n="daily_quiz">Daily
@@ -1021,14 +1021,14 @@
         </div>
       </div>
 
-      <!-- ─── Clip PAGE ─── -->
-      <div class="page-content page-content-ranked Clip-page-wrap" id="pageClip" style="display:none">
+      <!-- ─── Clips PAGE ─── -->
+      <div class="page-content page-content-ranked Clips-page-wrap" id="pageClips" style="display:none">
 
-        <!-- 3-COLUMN Clip LAYOUT -->
-        <div class="Clip-layout">
+        <!-- 3-COLUMN Clips LAYOUT -->
+        <div class="Clips-layout">
 
           <!-- ═══ LEFT PANEL ═══ -->
-          <aside class="Clip-left-panel">
+          <aside class="Clips-left-panel">
             <!-- Back btn -->
             <button class="back-btn reel-back-btn" onclick="showDashPage('pageHome')" style="margin:0 0 20px 0">
               <i data-lucide="chevron-left" style="width:18px;height:18px"></i> Back
@@ -1041,14 +1041,14 @@
                 <span>🎥</span>
               </div>
               <h3 class="glass-earn-card__title">Earn Coins</h3>
-              <p class="glass-earn-card__desc">Earn coins by watching Clip and buying products from our partners</p>
+              <p class="glass-earn-card__desc">Earn coins by watching Clips and buying products from our partners</p>
               <div class="glass-earn-card__stats">
                 <div class="earn-stat"><span class="earn-stat__num">+5</span><span class="earn-stat__label">per view</span></div>
                 <div class="earn-stat-divider"></div>
                 <div class="earn-stat"><span class="earn-stat__num">+50</span><span class="earn-stat__label">per shop</span></div>
               </div>
               <div class="glass-earn-card__btns">
-                <button class="earn-btn earn-btn--primary" onclick="showDashPage('pageClip')">
+                <button class="earn-btn earn-btn--primary" onclick="showDashPage('pageClips')">
                   <i data-lucide="play-circle" style="width:16px;height:16px"></i> Start Watching
                 </button>
                 <button class="earn-btn earn-btn--secondary" onclick="window.open('https://www.instagram.com/_grow31','_blank')">
@@ -1071,48 +1071,48 @@
             <!-- Coin tracker mini -->
             <div class="reel-coin-tracker">
               <span class="g-coin"></span>
-              <span style="font-weight:700;font-size:.9rem">Coins from Clip:</span>
+              <span style="font-weight:700;font-size:.9rem">Coins from Clips:</span>
               <span id="reelCoinCount" style="color:var(--yellow);font-weight:800;font-size:1rem">0</span>
             </div>
           </aside>
 
-          <!-- ═══ CENTER PANEL – Clip ═══ -->
-          <main class="Clip-center-panel">
-            <!-- Clip header bar -->
-            <div class="Clip-topbar">
-              <span class="Clip-topbar__logo">
+          <!-- ═══ CENTER PANEL – Clips ═══ -->
+          <main class="Clips-center-panel">
+            <!-- Clips header bar -->
+            <div class="Clips-topbar">
+              <span class="Clips-topbar__logo">
                 <i data-lucide="video" style="width:18px;height:18px;color:#ce93d8"></i>
-                Grow31 Clip
+                Grow31 Clips
               </span>
-              <span class="Clip-topbar__badge">LIVE</span>
+              <span class="Clips-topbar__badge">LIVE</span>
             </div>
 
             <!-- MOBILE-ONLY: Earn + Ad Strip (hidden on desktop where left panel shows) -->
-            <div class="Clip-mobile-strip">
+            <div class="Clips-mobile-strip">
               <!-- Earn Coins mini row -->
-              <div class="Clip-mobile-earn">
-                <span class="Clip-mobile-earn__icon">🎥</span>
-                <div class="Clip-mobile-earn__text">
-                  <span class="Clip-mobile-earn__title">Earn Coins</span>
-                  <span class="Clip-mobile-earn__desc">Watch Clip &amp; earn +5 coins per view</span>
+              <div class="Clips-mobile-earn">
+                <span class="Clips-mobile-earn__icon">🎥</span>
+                <div class="Clips-mobile-earn__text">
+                  <span class="Clips-mobile-earn__title">Earn Coins</span>
+                  <span class="Clips-mobile-earn__desc">Watch Clips &amp; earn +5 coins per view</span>
                 </div>
-                <div class="Clip-mobile-earn__coins">
+                <div class="Clips-mobile-earn__coins">
                   <span class="g-coin"></span>
                   <span id="reelCoinCountMobile">0</span>
                 </div>
               </div>
               <!-- Ad Banner -->
-              <div class="Clip-mobile-ad">
-                <div class="Clip-mobile-ad__badge">AD</div>
-                <span class="Clip-mobile-ad__icon">📢</span>
-                <div class="Clip-mobile-ad__text">
-                  <span class="Clip-mobile-ad__title">Advertisement Space</span>
-                  <span class="Clip-mobile-ad__sub">Your ad here · <a href="#" onclick="showView('contactView')" style="color:#82b1ff;text-decoration:none">Contact us</a></span>
+              <div class="Clips-mobile-ad">
+                <div class="Clips-mobile-ad__badge">AD</div>
+                <span class="Clips-mobile-ad__icon">📢</span>
+                <div class="Clips-mobile-ad__text">
+                  <span class="Clips-mobile-ad__title">Advertisement Space</span>
+                  <span class="Clips-mobile-ad__sub">Your ad here · <a href="#" onclick="showView('contactView')" style="color:#82b1ff;text-decoration:none">Contact us</a></span>
                 </div>
               </div>
             </div>
 
-            <!-- Clip Container - Snap Scrolling -->
+            <!-- Clips Container - Snap Scrolling -->
             <div class="shorts-container" id="shortsContainer">
           <!-- Short 1 -->
           <div class="short-item">
@@ -1473,10 +1473,10 @@
             </div>
           </div>
             </div><!-- end shortsContainer -->
-          </main><!-- end Clip-center-panel -->
+          </main><!-- end Clips-center-panel -->
 
           <!-- ═══ RIGHT PANEL ═══ -->
-          <aside class="Clip-right-panel">
+          <aside class="Clips-right-panel">
 
             <!-- Sponsored Card -->
             <div class="glass-sponsored-card">
@@ -1521,10 +1521,10 @@
                 <i data-lucide="users" style="width:16px;height:16px"></i> Invite Friends
               </button>
             </div>
-          </aside><!-- end Clip-right-panel -->
+          </aside><!-- end Clips-right-panel -->
 
-        </div><!-- end Clip-layout -->
-      </div><!-- end pageClip -->
+        </div><!-- end Clips-layout -->
+      </div><!-- end pageClips -->
 
       <!-- ─── LEADERBOARD PAGE ─── -->
       <div class="page-content page-content-ranked" id="pageLeader" style="display:none">
@@ -1620,7 +1620,7 @@
         <!-- Tasks/Quiz tab row -->
         <div style="display:flex;gap:10px;margin-bottom:16px">
           <button class="btn btn-outline btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageTasks')"><i
-              data-lucide="clipboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
+              data-lucide="Clipsboard-list" style="width:14px;height:14px"></i> <span data-i18n="nav_tasks">Daily
               Tasks</span></button>
           <button class="btn btn-blue btn-sm" style="flex:1;font-size:.85rem" onclick="showDashPage('pageQuiz')"><i
               data-lucide="brain" style="width:14px;height:14px"></i> <span data-i18n="daily_quiz">Daily
@@ -1709,7 +1709,7 @@
             <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
           </div>
           <div class="list-item" style="cursor:pointer" onclick="showDashPage('pageTasks')">
-            <span style="font-size:1.2rem;color:#448aff"><i data-lucide="clipboard-list"></i></span>
+            <span style="font-size:1.2rem;color:#448aff"><i data-lucide="Clipsboard-list"></i></span>
             <span style="flex:1;font-weight:500" data-i18n="nav_tasks">My Tasks</span>
             <span class="text-muted"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></span>
           </div>
@@ -1814,7 +1814,7 @@
         <span class="nav-icon"><i data-lucide="home"></i></span><span data-i18n="nav_home">Home</span>
       </button>
       <button class="nav-btn" id="navTasks" onclick="showDashPage('pageTasks')">
-        <span class="nav-icon"><i data-lucide="clipboard-list"></i></span><span data-i18n="nav_tasks">Tasks</span>
+        <span class="nav-icon"><i data-lucide="Clipsboard-list"></i></span><span data-i18n="nav_tasks">Tasks</span>
       </button>
       <button class="nav-btn invite-active" id="navInvite" onclick="openReferralDialog()">
         <div class="nav-icon-wrap"><i data-lucide="users"></i></div>
@@ -1823,8 +1823,8 @@
       <button class="nav-btn" id="navSpin" onclick="showDashPage('pageSpin')">
         <span class="nav-icon"><i data-lucide="disc-3"></i></span><span data-i18n="nav_spin">Spin</span>
       </button>
-      <button class="nav-btn" id="navClip" onclick="showDashPage('pageClip')">
-        <span class="nav-icon"><i data-lucide="video"></i></span><span data-i18n="nav_Clip">Clip</span>
+      <button class="nav-btn" id="navClips" onclick="showDashPage('pageClips')">
+        <span class="nav-icon"><i data-lucide="video"></i></span><span data-i18n="nav_Clips">Clips</span>
       </button>
       <button class="nav-btn" id="navMore" onclick="showDashPage('pageMore')">
         <span class="nav-icon"><i data-lucide="layout-grid"></i></span><span data-i18n="nav_more">More</span>
@@ -2113,13 +2113,13 @@
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
-              <path fill-rule="evenodd" clip-rule="evenodd"
+              <path fill-rule="evenodd" Clips-rule="evenodd"
                 d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
                 fill="#BFC8D0"></path>
               <path
                 d="M28 16C28 22.6274 22.6274 28 16 28C13.4722 28 11.1269 27.2184 9.19266 25.8837L5.09091 26.9091L6.16576 22.8784C4.80092 20.9307 4 18.5589 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16Z"
                 fill="url(#paint0_linear_87_7264)"></path>
-              <path fill-rule="evenodd" clip-rule="evenodd"
+              <path fill-rule="evenodd" Clips-rule="evenodd"
                 d="M16 30C23.732 30 30 23.732 30 16C30 8.26801 23.732 2 16 2C8.26801 2 2 8.26801 2 16C2 18.5109 2.661 20.8674 3.81847 22.905L2 30L9.31486 28.3038C11.3014 29.3854 13.5789 30 16 30ZM16 27.8462C22.5425 27.8462 27.8462 22.5425 27.8462 16C27.8462 9.45755 22.5425 4.15385 16 4.15385C9.45755 4.15385 4.15385 9.45755 4.15385 16C4.15385 18.5261 4.9445 20.8675 6.29184 22.7902L5.23077 26.7692L9.27993 25.7569C11.1894 27.0746 13.5046 27.8462 16 27.8462Z"
                 fill="white"></path>
               <path
@@ -2950,8 +2950,8 @@
     </div>
   </div>
 
-  <!-- Clip Container -->
-  <div id="ClipContainer" class="Clip-container" style="display:none;">
+  <!-- Clips Container -->
+  <div id="ClipsContainer" class="Clips-container" style="display:none;">
     <div class="reel">Reel 1</div>
     <div class="reel">Reel 2</div>
     <div class="reel">Reel 3</div>
