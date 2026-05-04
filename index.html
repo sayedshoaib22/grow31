@@ -682,6 +682,23 @@
           </div>
         </div>
 
+        <!-- Earn Coins Card -->
+        <div class="home-earn-card" onclick="showDashPage('pageReels')">
+          <div class="home-earn-card__bg"></div>
+          <div class="home-earn-card__left">
+            <div class="home-earn-card__icon">🎥</div>
+            <div>
+              <h3 class="home-earn-card__title">Earn Coins</h3>
+              <p class="home-earn-card__desc">Watch reels &amp; shop to earn rewards</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <button class="btn btn-green btn-sm" style="pointer-events:none;padding:8px 16px;font-weight:700">
+              ▶ Watch
+            </button>
+          </div>
+        </div>
+
         <!-- GAMIFIED FLOATING COINS ELEMENT -->
         <div class="float-coins-wrap" id="gamifiedWrap"
           style="background:linear-gradient(135deg,rgba(156,39,176,0.12),rgba(68,138,255,0.06));border:1px solid rgba(156,39,176,0.25);">
@@ -1005,24 +1022,73 @@
       </div>
 
       <!-- ─── REELS PAGE ─── -->
-      <div class="page-content page-content-ranked" id="pageReels" style="display:none">
-        <div style="margin-bottom:12px"><button class="back-btn" onclick="showDashPage('pageHome')" style="margin:0"><i
-              data-lucide="chevron-left" style="width:18px;height:18px"></i> Back</button></div>
-        <!-- AD -->
-        <div class="banner-ad" style="margin-bottom:14px"><span style="font-size:1.2rem">📢</span>
-          <div style="text-align:left">
-            <p style="font-weight:600;font-size:.85rem">Advertisement Space</p>
-            <p style="font-size:.78rem;color:rgba(255,255,255,0.6);font-weight:500">Earn coins by watching reels and
-              buying products</p>
-            <p class="text-muted" style="font-size:.72rem">Your ad here</p>
-          </div>
-          <div class="banner-ad-label">AD</div>
-        </div>
-        <h2 class="section-heading"><span data-i18n="reels">Reels</span> <i data-lucide="video"
-            style="width:20px;height:20px"></i></h2>
+      <div class="page-content page-content-ranked reels-page-wrap" id="pageReels" style="display:none">
 
-        <!-- Reels Container - YouTube Shorts Style -->
-        <div class="shorts-container" id="shortsContainer">
+        <!-- 3-COLUMN REELS LAYOUT -->
+        <div class="reels-layout">
+
+          <!-- ═══ LEFT PANEL ═══ -->
+          <aside class="reels-left-panel">
+            <!-- Back btn -->
+            <button class="back-btn reel-back-btn" onclick="showDashPage('pageHome')" style="margin:0 0 20px 0">
+              <i data-lucide="chevron-left" style="width:18px;height:18px"></i> Back
+            </button>
+
+            <!-- Earn Coins Glassmorphism Card -->
+            <div class="glass-earn-card">
+              <div class="glass-earn-card__glow"></div>
+              <div class="glass-earn-card__icon">
+                <span>🎥</span>
+              </div>
+              <h3 class="glass-earn-card__title">Earn Coins</h3>
+              <p class="glass-earn-card__desc">Earn coins by watching reels and buying products from our partners</p>
+              <div class="glass-earn-card__stats">
+                <div class="earn-stat"><span class="earn-stat__num">+5</span><span class="earn-stat__label">per view</span></div>
+                <div class="earn-stat-divider"></div>
+                <div class="earn-stat"><span class="earn-stat__num">+50</span><span class="earn-stat__label">per shop</span></div>
+              </div>
+              <div class="glass-earn-card__btns">
+                <button class="earn-btn earn-btn--primary" onclick="showDashPage('pageReels')">
+                  <i data-lucide="play-circle" style="width:16px;height:16px"></i> Start Watching
+                </button>
+                <button class="earn-btn earn-btn--secondary" onclick="window.open('https://www.instagram.com/_grow31','_blank')">
+                  <i data-lucide="shopping-bag" style="width:16px;height:16px"></i> Shop &amp; Earn
+                </button>
+              </div>
+            </div>
+
+            <!-- Ad Card -->
+            <div class="glass-ad-card">
+              <div class="glass-ad-badge">AD</div>
+              <div class="glass-ad-card__icon">📢</div>
+              <p class="glass-ad-card__title">Advertisement</p>
+              <p class="glass-ad-card__sub">Your brand here</p>
+              <button class="earn-btn earn-btn--ghost" style="margin-top:12px;width:100%;font-size:.8rem" onclick="showView('contactView')">
+                Advertise with us →
+              </button>
+            </div>
+
+            <!-- Coin tracker mini -->
+            <div class="reel-coin-tracker">
+              <span class="g-coin"></span>
+              <span style="font-weight:700;font-size:.9rem">Coins from reels:</span>
+              <span id="reelCoinCount" style="color:var(--yellow);font-weight:800;font-size:1rem">0</span>
+            </div>
+          </aside>
+
+          <!-- ═══ CENTER PANEL – REELS ═══ -->
+          <main class="reels-center-panel">
+            <!-- Reels header bar -->
+            <div class="reels-topbar">
+              <span class="reels-topbar__logo">
+                <i data-lucide="video" style="width:18px;height:18px;color:#ce93d8"></i>
+                Grow31 Reels
+              </span>
+              <span class="reels-topbar__badge">LIVE</span>
+            </div>
+
+            <!-- Reels Container - Snap Scrolling -->
+            <div class="shorts-container" id="shortsContainer">
           <!-- Short 1 -->
           <div class="short-item">
             <div class="short-video-container">
@@ -1381,17 +1447,59 @@
               </div>
             </div>
           </div>
-        </div>
+            </div><!-- end shortsContainer -->
+          </main><!-- end reels-center-panel -->
 
-        <!-- AD 2 -->
-        <div class="banner-ad" style="margin-top:16px"><span style="font-size:1.2rem">🎯</span>
-          <div style="text-align:left">
-            <p style="font-weight:600;font-size:.85rem">Sponsored</p>
-            <p class="text-muted" style="font-size:.72rem">Advertise with Grow31</p>
-          </div>
-          <div class="banner-ad-label">AD</div>
-        </div>
-      </div>
+          <!-- ═══ RIGHT PANEL ═══ -->
+          <aside class="reels-right-panel">
+
+            <!-- Sponsored Card -->
+            <div class="glass-sponsored-card">
+              <div class="glass-sponsored-card__glow"></div>
+              <div class="sponsored-badge">SPONSORED</div>
+              <div class="glass-sponsored-card__icon">🚀</div>
+              <h3 class="glass-sponsored-card__title">Advertise with Grow31</h3>
+              <p class="glass-sponsored-card__desc">Reach 10,000+ active users daily with your brand on our platform.</p>
+              <ul class="sponsored-features">
+                <li><i data-lucide="check-circle" style="width:14px;height:14px;color:#00e676"></i> Targeted reach</li>
+                <li><i data-lucide="check-circle" style="width:14px;height:14px;color:#00e676"></i> Daily impressions</li>
+                <li><i data-lucide="check-circle" style="width:14px;height:14px;color:#00e676"></i> Coin incentives</li>
+              </ul>
+              <button class="earn-btn earn-btn--primary" style="width:100%;margin-top:16px" onclick="showView('contactView')">
+                <i data-lucide="megaphone" style="width:15px;height:15px"></i> Advertise Now
+              </button>
+            </div>
+
+            <!-- Trending Tags -->
+            <div class="glass-trending-card">
+              <h4 class="trending-title"><i data-lucide="trending-up" style="width:15px;height:15px;color:#f5c518"></i> Trending</h4>
+              <div class="trending-tags">
+                <span class="trending-tag">#Grow31</span>
+                <span class="trending-tag">#DailyChallenge</span>
+                <span class="trending-tag">#EarnCoins</span>
+                <span class="trending-tag">#31Days</span>
+                <span class="trending-tag">#Rewards</span>
+                <span class="trending-tag">#SpinWheel</span>
+              </div>
+            </div>
+
+            <!-- Quick links -->
+            <div class="glass-quicklinks-card">
+              <h4 class="trending-title" style="margin-bottom:12px"><i data-lucide="zap" style="width:15px;height:15px;color:#448aff"></i> Quick Actions</h4>
+              <button class="quicklink-btn" onclick="showDashPage('pageSpin')">
+                <i data-lucide="disc-3" style="width:16px;height:16px"></i> Spin Wheel
+              </button>
+              <button class="quicklink-btn" onclick="showDashPage('pageQuiz')">
+                <i data-lucide="brain" style="width:16px;height:16px"></i> Daily Quiz
+              </button>
+              <button class="quicklink-btn" onclick="openReferralDialog()">
+                <i data-lucide="users" style="width:16px;height:16px"></i> Invite Friends
+              </button>
+            </div>
+          </aside><!-- end reels-right-panel -->
+
+        </div><!-- end reels-layout -->
+      </div><!-- end pageReels -->
 
       <!-- ─── LEADERBOARD PAGE ─── -->
       <div class="page-content page-content-ranked" id="pageLeader" style="display:none">
@@ -2817,6 +2925,12 @@
     </div>
   </div>
 
+  <!-- Reels Container -->
+  <div id="reelsContainer" class="reels-container" style="display:none;">
+    <div class="reel">Reel 1</div>
+    <div class="reel">Reel 2</div>
+    <div class="reel">Reel 3</div>
+  </div>
 
   <script src="app.js"></script>
 </body>

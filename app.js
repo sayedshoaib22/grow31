@@ -4109,3 +4109,179 @@ window.addEventListener('resize', () => {
   syncFixedBarHeights();
   updateMobileBackBtn();
 });
+
+// ── REELS – PREMIUM AUTOPLAY & INTERACTION ──
+
+let reelsObserver = null;
+let reelCoinCount = 0;
+
+function openReels() {
+  // Legacy entry-point kept for backward compat – navigate to the reels page
+  showDashPage('pageReels');
+}
+
+function closeReels() {
+  document.body.style.overflow = "auto";
+  const rc = document.getElementById("reelsContainer");
+  if (rc) rc.style.display = "none";
+}
+
+function initReelsAutoplay() {
+  const container = document.getElementById('shortsContainer');
+  if (!container) return;
+
+  // Disconnect previous observer if any
+  if (reelsObserver) { reelsObserver.disconnect(); reelsObserver = null; }
+
+  const items = container.querySelectorAll('.short-item');
+  if (!items.length) return;
+
+  reelsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const item = entry.target;
+      const video = item.querySelector('.short-video');
+
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        // Mark active
+        items.forEach(i => i.classList.remove('reel-active'));
+        item.classList.add('reel-active');
+
+        // Autoplay
+        if (video && video.paused) {
+          video.play().catch(() => {});
+        }
+
+        // Reward coins for watching
+        awardReelCoin(item);
+
+        // Update progress bar
+        if (video) {
+          video.addEventListener('timeupdate', () => {
+            const bar = item.querySelector('.progress-fill');
+            if (bar && video.duration) {
+              bar.style.width = ((video.currentTime / video.duration) * 100) + '%';
+            }
+          }, { passive: true });
+        }
+      } else {
+        // Pause off-screen videos
+        if (video && !video.paused) {
+          video.pause();
+        }
+        item.classList.remove('reel-active');
+      }
+    });
+  }, { threshold: [0.6], root: container });
+
+  items.forEach(item => reelsObserver.observe(item));
+
+  // Lucide icons refresh
+  if (window.lucide) lucide.createIcons();
+}
+
+const _reelsCoinAwarded = new WeakSet();
+function awardReelCoin(item) {
+  if (_reelsCoinAwarded.has(item)) return;
+  _reelsCoinAwarded.add(item);
+  reelCoinCount += 5;
+  const el = document.getElementById('reelCoinCount');
+  if (el) el.textContent = reelCoinCount;
+
+  if (state.currentUser) {
+    state.currentUser.coins = (state.currentUser.coins || 0) + 5;
+    if (!state.currentUser.txHistory) state.currentUser.txHistory = [];
+    state.currentUser.txHistory.unshift({ type: 'reel', coins: 5, desc: 'Reel watch reward', time: Date.now() });
+    saveData();
+    renderDash();
+  }
+}
+
+// Toggle like with animation
+function toggleLike(btn) {
+  const isLiked = btn.classList.toggle('liked');
+  const icon = btn.querySelector('i[data-lucide]');
+  const count = btn.querySelector('.action-count');
+  if (icon) {
+    icon.style.color = isLiked ? '#ff4d6d' : '';
+    icon.style.transform = isLiked ? 'scale(1.4)' : 'scale(1)';
+    setTimeout(() => { if (icon) icon.style.transform = ''; }, 300);
+  }
+  if (count) {
+    const cur = parseFloat(count.textContent.replace('K','')) * (count.textContent.includes('K') ? 1000 : 1);
+    const newVal = isLiked ? cur + 1 : Math.max(0, cur - 1);
+    count.textContent = newVal >= 1000 ? (newVal / 1000).toFixed(1) + 'K' : newVal;
+  }
+}
+
+function toggleDislike(btn) {
+  btn.classList.toggle('disliked');
+  const icon = btn.querySelector('i[data-lucide]');
+  if (icon) {
+    icon.style.color = btn.classList.contains('disliked') ? '#82b1ff' : '';
+  }
+}
+
+function toggleSubscribe(btn) {
+  const isSub = btn.classList.toggle('subscribed');
+  btn.textContent = isSub ? 'Subscribed ✓' : 'Subscribe';
+  if (isSub) {
+    showToast('Subscribed! 🎉', 'success');
+    awardReelCoin(btn.closest('.short-item') || btn);
+  }
+}
+
+function togglePlayPause(btn) {
+  const item = btn.closest('.short-item');
+  const video = item ? item.querySelector('.short-video') : null;
+  if (!video) return;
+  const icon = btn.querySelector('i[data-lucide]');
+  if (video.paused) {
+    video.play().catch(() => {});
+    if (icon) { icon.setAttribute('data-lucide', 'pause'); if (window.lucide) lucide.createIcons(); }
+  } else {
+    video.pause();
+    if (icon) { icon.setAttribute('data-lucide', 'play'); if (window.lucide) lucide.createIcons(); }
+  }
+}
+
+function toggleVolume(btn) {
+  const item = btn.closest('.short-item');
+  const video = item ? item.querySelector('.short-video') : null;
+  const icon = btn.querySelector('i[data-lucide]');
+  if (!video) return;
+  video.muted = !video.muted;
+  if (icon) {
+    icon.setAttribute('data-lucide', video.muted ? 'volume-x' : 'volume-2');
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function showMenu() { showToast('Options coming soon!', 'info'); }
+function showComments() { showToast('Comments coming soon! 💬'); }
+function shareShort() {
+  if (navigator.share) {
+    navigator.share({ title: 'Grow31 Reel', url: window.location.href });
+  } else {
+    navigator.clipboard?.writeText(window.location.href);
+    showToast('Link copied! 🔗', 'success');
+  }
+}
+
+// Hook into showDashPage to init autoplay when reels page shown
+const _origShowDashPage = window.showDashPage;
+window.showDashPage = function(page) {
+  if (_origShowDashPage) _origShowDashPage(page);
+  if (page === 'pageReels') {
+    setTimeout(() => {
+      initReelsAutoplay();
+      if (window.lucide) lucide.createIcons();
+    }, 120);
+  } else {
+    // Pause all videos when leaving reels
+    const container = document.getElementById('shortsContainer');
+    if (container) {
+      container.querySelectorAll('.short-video').forEach(v => { try { v.pause(); } catch(e){} });
+    }
+    if (reelsObserver) { reelsObserver.disconnect(); reelsObserver = null; }
+  }
+};
