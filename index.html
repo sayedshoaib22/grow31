@@ -683,13 +683,13 @@
         </div>
 
         <!-- Earn Coins Card -->
-        <div class="home-earn-card" onclick="showDashPage('pageReels')">
+        <div class="home-earn-card" onclick="showDashPage('pageClip')">
           <div class="home-earn-card__bg"></div>
           <div class="home-earn-card__left">
             <div class="home-earn-card__icon">🎥</div>
             <div>
               <h3 class="home-earn-card__title">Earn Coins</h3>
-              <p class="home-earn-card__desc">Watch reels &amp; shop to earn rewards</p>
+              <p class="home-earn-card__desc">Watch Clip &amp; shop to earn rewards</p>
             </div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
@@ -1021,14 +1021,14 @@
         </div>
       </div>
 
-      <!-- ─── REELS PAGE ─── -->
-      <div class="page-content page-content-ranked reels-page-wrap" id="pageReels" style="display:none">
+      <!-- ─── Clip PAGE ─── -->
+      <div class="page-content page-content-ranked Clip-page-wrap" id="pageClip" style="display:none">
 
-        <!-- 3-COLUMN REELS LAYOUT -->
-        <div class="reels-layout">
+        <!-- 3-COLUMN Clip LAYOUT -->
+        <div class="Clip-layout">
 
           <!-- ═══ LEFT PANEL ═══ -->
-          <aside class="reels-left-panel">
+          <aside class="Clip-left-panel">
             <!-- Back btn -->
             <button class="back-btn reel-back-btn" onclick="showDashPage('pageHome')" style="margin:0 0 20px 0">
               <i data-lucide="chevron-left" style="width:18px;height:18px"></i> Back
@@ -1041,14 +1041,14 @@
                 <span>🎥</span>
               </div>
               <h3 class="glass-earn-card__title">Earn Coins</h3>
-              <p class="glass-earn-card__desc">Earn coins by watching reels and buying products from our partners</p>
+              <p class="glass-earn-card__desc">Earn coins by watching Clip and buying products from our partners</p>
               <div class="glass-earn-card__stats">
                 <div class="earn-stat"><span class="earn-stat__num">+5</span><span class="earn-stat__label">per view</span></div>
                 <div class="earn-stat-divider"></div>
                 <div class="earn-stat"><span class="earn-stat__num">+50</span><span class="earn-stat__label">per shop</span></div>
               </div>
               <div class="glass-earn-card__btns">
-                <button class="earn-btn earn-btn--primary" onclick="showDashPage('pageReels')">
+                <button class="earn-btn earn-btn--primary" onclick="showDashPage('pageClip')">
                   <i data-lucide="play-circle" style="width:16px;height:16px"></i> Start Watching
                 </button>
                 <button class="earn-btn earn-btn--secondary" onclick="window.open('https://www.instagram.com/_grow31','_blank')">
@@ -1071,48 +1071,48 @@
             <!-- Coin tracker mini -->
             <div class="reel-coin-tracker">
               <span class="g-coin"></span>
-              <span style="font-weight:700;font-size:.9rem">Coins from reels:</span>
+              <span style="font-weight:700;font-size:.9rem">Coins from Clip:</span>
               <span id="reelCoinCount" style="color:var(--yellow);font-weight:800;font-size:1rem">0</span>
             </div>
           </aside>
 
-          <!-- ═══ CENTER PANEL – REELS ═══ -->
-          <main class="reels-center-panel">
-            <!-- Reels header bar -->
-            <div class="reels-topbar">
-              <span class="reels-topbar__logo">
+          <!-- ═══ CENTER PANEL – Clip ═══ -->
+          <main class="Clip-center-panel">
+            <!-- Clip header bar -->
+            <div class="Clip-topbar">
+              <span class="Clip-topbar__logo">
                 <i data-lucide="video" style="width:18px;height:18px;color:#ce93d8"></i>
-                Grow31 Reels
+                Grow31 Clip
               </span>
-              <span class="reels-topbar__badge">LIVE</span>
+              <span class="Clip-topbar__badge">LIVE</span>
             </div>
 
             <!-- MOBILE-ONLY: Earn + Ad Strip (hidden on desktop where left panel shows) -->
-            <div class="reels-mobile-strip">
+            <div class="Clip-mobile-strip">
               <!-- Earn Coins mini row -->
-              <div class="reels-mobile-earn">
-                <span class="reels-mobile-earn__icon">🎥</span>
-                <div class="reels-mobile-earn__text">
-                  <span class="reels-mobile-earn__title">Earn Coins</span>
-                  <span class="reels-mobile-earn__desc">Watch reels &amp; earn +5 coins per view</span>
+              <div class="Clip-mobile-earn">
+                <span class="Clip-mobile-earn__icon">🎥</span>
+                <div class="Clip-mobile-earn__text">
+                  <span class="Clip-mobile-earn__title">Earn Coins</span>
+                  <span class="Clip-mobile-earn__desc">Watch Clip &amp; earn +5 coins per view</span>
                 </div>
-                <div class="reels-mobile-earn__coins">
+                <div class="Clip-mobile-earn__coins">
                   <span class="g-coin"></span>
                   <span id="reelCoinCountMobile">0</span>
                 </div>
               </div>
               <!-- Ad Banner -->
-              <div class="reels-mobile-ad">
-                <div class="reels-mobile-ad__badge">AD</div>
-                <span class="reels-mobile-ad__icon">📢</span>
-                <div class="reels-mobile-ad__text">
-                  <span class="reels-mobile-ad__title">Advertisement Space</span>
-                  <span class="reels-mobile-ad__sub">Your ad here · <a href="#" onclick="showView('contactView')" style="color:#82b1ff;text-decoration:none">Contact us</a></span>
+              <div class="Clip-mobile-ad">
+                <div class="Clip-mobile-ad__badge">AD</div>
+                <span class="Clip-mobile-ad__icon">📢</span>
+                <div class="Clip-mobile-ad__text">
+                  <span class="Clip-mobile-ad__title">Advertisement Space</span>
+                  <span class="Clip-mobile-ad__sub">Your ad here · <a href="#" onclick="showView('contactView')" style="color:#82b1ff;text-decoration:none">Contact us</a></span>
                 </div>
               </div>
             </div>
 
-            <!-- Reels Container - Snap Scrolling -->
+            <!-- Clip Container - Snap Scrolling -->
             <div class="shorts-container" id="shortsContainer">
           <!-- Short 1 -->
           <div class="short-item">
@@ -1473,10 +1473,10 @@
             </div>
           </div>
             </div><!-- end shortsContainer -->
-          </main><!-- end reels-center-panel -->
+          </main><!-- end Clip-center-panel -->
 
           <!-- ═══ RIGHT PANEL ═══ -->
-          <aside class="reels-right-panel">
+          <aside class="Clip-right-panel">
 
             <!-- Sponsored Card -->
             <div class="glass-sponsored-card">
@@ -1521,10 +1521,10 @@
                 <i data-lucide="users" style="width:16px;height:16px"></i> Invite Friends
               </button>
             </div>
-          </aside><!-- end reels-right-panel -->
+          </aside><!-- end Clip-right-panel -->
 
-        </div><!-- end reels-layout -->
-      </div><!-- end pageReels -->
+        </div><!-- end Clip-layout -->
+      </div><!-- end pageClip -->
 
       <!-- ─── LEADERBOARD PAGE ─── -->
       <div class="page-content page-content-ranked" id="pageLeader" style="display:none">
@@ -1823,8 +1823,8 @@
       <button class="nav-btn" id="navSpin" onclick="showDashPage('pageSpin')">
         <span class="nav-icon"><i data-lucide="disc-3"></i></span><span data-i18n="nav_spin">Spin</span>
       </button>
-      <button class="nav-btn" id="navReels" onclick="showDashPage('pageReels')">
-        <span class="nav-icon"><i data-lucide="video"></i></span><span data-i18n="nav_reels">Reels</span>
+      <button class="nav-btn" id="navClip" onclick="showDashPage('pageClip')">
+        <span class="nav-icon"><i data-lucide="video"></i></span><span data-i18n="nav_Clip">Clip</span>
       </button>
       <button class="nav-btn" id="navMore" onclick="showDashPage('pageMore')">
         <span class="nav-icon"><i data-lucide="layout-grid"></i></span><span data-i18n="nav_more">More</span>
@@ -2950,8 +2950,8 @@
     </div>
   </div>
 
-  <!-- Reels Container -->
-  <div id="reelsContainer" class="reels-container" style="display:none;">
+  <!-- Clip Container -->
+  <div id="ClipContainer" class="Clip-container" style="display:none;">
     <div class="reel">Reel 1</div>
     <div class="reel">Reel 2</div>
     <div class="reel">Reel 3</div>
